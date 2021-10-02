@@ -15,12 +15,16 @@ class RubricaCriterios extends Migration
     {
         //
         Schema::create('rubrica_criterios', function(Blueprint $table){
-            $table->id('id_criterio');
+            $table->id();//id_criterio
             $table->integer('id_rubrica');
             $table->string('nombre');
             $table->string('porcentaje');
             $table->timestamps();//crea dos columnas create_add y update_up
-
+          /*  $table->foreign("id_rubrica")
+            ->references("id")
+            ->on("rubricas")
+            ->onDelete("cascade")
+            ->onUpdate("cascade"); */
         });
     }
 

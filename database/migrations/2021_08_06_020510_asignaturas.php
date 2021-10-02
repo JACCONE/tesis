@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Rubrica extends Migration
+class Asignaturas extends Migration
 {
     /**
      * Run the migrations.
@@ -14,17 +14,15 @@ class Rubrica extends Migration
     public function up()
     {
         //
-        Schema::create('rubricas', function(Blueprint $table){
-            $table->id();
-            $table->integer('id_asignatura');
-            $table->integer('id_docente');//debe ser clave foranea tambien
+        Schema::create('asignaturas', function (Blueprint $table) {
+            $table->id('id');
+            $table->integer('id_subdisciplina');
             $table->string('nombre');
-            $table->text('descripcion');
             $table->string('estado');
-            $table->timestamps();//crea dos columnas create_add y update_up
-         /*   $table->foreign("id_asignatura")
+            $table->timestamps();
+           /*  $table->foreign("id_subdisciplina")
             ->references("id")
-            ->on("asignaturas")
+            ->on("subdisciplinas_unesco")
             ->onDelete("cascade")
             ->onUpdate("cascade");  */
         });
@@ -37,6 +35,7 @@ class Rubrica extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('rubrica');
+        //
+        Schema::dropIfExists('asignaturas');
     }
 }

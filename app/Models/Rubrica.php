@@ -9,6 +9,7 @@ class Rubrica extends Model
 {
     use HasFactory;
     //protected $primaryKey = 'id_rubrica';
-    protected $table = 'rubrica';
-    
+    protected $table = 'rubricas';
+    //protected $guarded = [];  
+    //protected $fillable = ['id','id_asignatura','id_docente','nombre','descripcion','estado'];
 }

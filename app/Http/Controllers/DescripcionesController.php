@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Rubrica;
-
-class RurbricaController extends Controller
+use App\Models\descripciones; 
+class DescripcionesController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +14,6 @@ class RurbricaController extends Controller
     public function index()
     {
         //
-        return Rubrica::get();
     }
 
     /**
@@ -25,7 +23,7 @@ class RurbricaController extends Controller
      */
     public function create()
     {
-        //es para el front end devuelve la vista
+        //
     }
 
     /**
@@ -37,8 +35,6 @@ class RurbricaController extends Controller
     public function store(Request $request)
     {
         //
-        $rubrica = new Rubrica;
-        $rubrica->create($request->all());
     }
 
     /**
@@ -47,18 +43,51 @@ class RurbricaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
+    public function StoreMultiple(Request $request)
+    {
+        $ultimo = [];
+        $datos = json_decode($request->getContent(), true);
+        foreach($datos as $des){
+           $descripcion = new descripciones();
+           $descripcion->id_criterio = $des['id_criterio'];
+           $descripcion->id_nivel = $des['id_nivel'];
+           $descripcion->descripcion = $des['descripcion'];
+           $descripcion->save(); 
+           array_push($ultimo, $descripcion->id);
+        }
+        return response()->json($ultimo);        
+    }
     public function show($id)
     {
-        $rubrica = Rubrica::find($id);   
-        return response()->json($rubrica);
-        
-    }
-  /*   public function show(Rubrica $rubrica)
-    {
         //
-        return response()->json($rubrica);
-        
-    } */
+    }
+    public function showMultiple(Request $request)
+    {
+        $ultimo= [];
+        $datos = json_decode($request->getContent(), true);
+        foreach($datos as $des){
+           $descripcion = descripciones::where('id_criterio', $des['id_criterio'])->get(); 
+           foreach($descripcion as $des2){
+            array_push($ultimo, $des2);
+           }
+           
+           /*
+           $st = isset($descripcion[0]) ? $descripcion[0] : false;
+            if ($st){
+                
+            }
+            
+           if(isset($descripcion)){
+                
+           }else{
+            
+           }
+           */
+        }
+         return response()->json($ultimo);  
+    }
+  
 
     /**
      * Show the form for editing the specified resource.
@@ -68,7 +97,7 @@ class RurbricaController extends Controller
      */
     public function edit($id)
     {
-        //es lo mismo que el de create
+        //
     }
 
     /**
@@ -80,7 +109,7 @@ class RurbricaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //es el metodo de la api para actualizar los datos en bd
+        //
     }
 
     /**

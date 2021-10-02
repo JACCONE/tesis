@@ -16,11 +16,16 @@ class RubricaNiveles extends Migration
     {
         //
         Schema::create('rubrica_niveles', function (Blueprint $table) {
-            $table->bigIncrements('id_nivel');
+            $table->id();
             $table->integer('id_rubrica');
             $table->integer('valoracion');
             $table->string('nombre');
             $table->timestamps();
+           /*  $table->foreign("id_alumno")
+            ->references("id")
+            ->on("rubricas")
+            ->onDelete("cascade")
+            ->onUpdate("cascade"); */
         });
     }
 

@@ -20,6 +20,11 @@ class DisciplinasUnesco extends Migration
             $table->string('nombre');
             $table->string('estado');
             $table->timestamps();//crea dos columnas create_add y update_up
+           /*  $table->foreign("id_campo")
+            ->references("id")
+            ->on("campos_unesco")
+            ->onDelete("cascade")
+            ->onUpdate("cascade");  */
         });
     }
 

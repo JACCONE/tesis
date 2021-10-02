@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CriteriosItems extends Migration
+class AddClaveToCriteriosItemsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,18 +13,13 @@ class CriteriosItems extends Migration
      */
     public function up()
     {
-        //
-        Schema::create('criterios_items', function (Blueprint $table) {
-            $table->id();
-            $table->integer('id_criterio');
-            $table->string('nombre');
-            $table->text('andamiaje');
-            $table->timestamps();
-            /* $table->foreign("id_alumno")
+        Schema::table('criterios_items', function (Blueprint $table) {
+            //
+            $table->foreign("id_criterio")
             ->references("id")
             ->on("rubrica_criterios")
             ->onDelete("cascade")
-            ->onUpdate("cascade"); */
+            ->onUpdate("cascade");
         });
     }
 
@@ -35,7 +30,8 @@ class CriteriosItems extends Migration
      */
     public function down()
     {
-        //
-        Schema::dropIfExists('criterios_items');
+        Schema::table('criterios_items', function (Blueprint $table) {
+            //
+        });
     }
 }

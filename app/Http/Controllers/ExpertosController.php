@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
-use App\Models\disciplinas;
+use App\Models\experto;
 
 
-class DisciplinasUnesco extends Controller
+class ExpertosController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,8 +17,9 @@ class DisciplinasUnesco extends Controller
     public function index()
     {
         //
-        $disciplina_unesco =  disciplinas::get();
-        return response()->json($disciplina_unesco);
+        $exp =  experto::get();
+        return response()->json($exp);
+
     }
 
     /**
@@ -39,6 +41,7 @@ class DisciplinasUnesco extends Controller
     public function store(Request $request)
     {
         //
+        
     }
 
     /**
