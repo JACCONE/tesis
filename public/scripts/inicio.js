@@ -745,7 +745,7 @@ const app = new Vue({
     actualizar_rubrica_bd(){
       console.log("nueva forma de actualizacion en caso de que la rubrica este en construccion");
       axios
-      .delete('http://localhost/tesis/public/api/rubrica/'+this.model.rub.id)
+      .delete(window.location.href+'api/rubrica/'+this.model.rub.id)
       .then(response9 => {
         console.log("Rubrica eliminada?: ",response9.data );
         this.guardar_rubrica_bd();
@@ -765,7 +765,7 @@ const app = new Vue({
       }];
 
       axios
-      .put('http://localhost/tesis/public/api/rubrica',temp)
+      .put(window.location.href+'api/rubrica',temp)
       .then(response2 => {
        // this.combos.disciplina = response2.data;
         //this.model.dis = this.disciplina.find(el=>el.id==2);
@@ -784,7 +784,7 @@ const app = new Vue({
         });
 
         axios
-        .put('http://localhost/tesis/public/api/criterio',rubrica_criterios)
+        .put(window.location.href+'api/criterio',rubrica_criterios)
         .then(response3 =>{
           console.log("actualizacion criterios: ", response3.data);
           let ides_criterios = response3.data;
@@ -808,7 +808,7 @@ const app = new Vue({
           });
 
           axios
-          .put('http://localhost/tesis/public/api/items',items_criterios)
+          .put(window.location.href+'api/items',items_criterios)
           .then(response4 => {
             console.log("actualizacion items: ", response4.data)
 
@@ -849,7 +849,7 @@ const app = new Vue({
       //console.log("id_rubrica almacenada: ", prueba);
       
       axios
-            .post('http://localhost/tesis/public/api/rubrica',array_rubrica)// ejemplo para update pasar id_rubrica
+            .post(window.location.href+'api/rubrica',array_rubrica)// ejemplo para update pasar id_rubrica
             .then(response => {
               //console.log("response: ", response.data);
               id_rubrica = response.data;
@@ -865,7 +865,7 @@ const app = new Vue({
                 rubrica_niveles.push(temp2);
               })
               axios
-              .post('http://localhost/tesis/public/api/niveles/multiple',rubrica_niveles)
+              .post(window.location.href+'api/niveles/multiple',rubrica_niveles)
               .then(response2=>{
                 //console.log("response de niveles: ", response2.data);
                 niveles = response2.data;
@@ -885,7 +885,7 @@ const app = new Vue({
                   rubrica_criterios.push(temp);
                 });
                 axios
-                  .post('http://localhost/tesis/public/api/criterio/multiple',rubrica_criterios)
+                  .post(window.location.href+'api/criterio/multiple',rubrica_criterios)
                   .then(response3=>{
                     console.log("response de criterios: ", response3.data);
                     criterios= response3.data;
@@ -916,7 +916,7 @@ const app = new Vue({
                   
                   
                   axios
-                  .post('http://localhost/tesis/public/api/descripciones/multiple',descripcion_niveles)
+                  .post(window.location.href+'api/descripciones/multiple',descripcion_niveles)
                   .then(response4 => {
                     //console.log("response de descripciones: ", response4.data);
                     //criterios= response.data;
@@ -938,7 +938,7 @@ const app = new Vue({
                       cont2=cont2+1;
                     });
                     axios
-                  .post('http://localhost/tesis/public/api/items/multiple',items_criterios)
+                  .post(window.location.href+'api/items/multiple',items_criterios)
                   .then(response5 =>{
                     //console.log("response de items: ", response5.data);
                   })
@@ -978,25 +978,25 @@ const app = new Vue({
         //this.model.cam = this.campo.find(el=>el.id==1);
       }); 
       axios
-      .get('http://localhost/tesis/public/api/disciplinas')
+      .get(window.location.href+'api/disciplinas')
       .then(response2 => {
         this.combos.disciplina = response2.data;
         //this.model.dis = this.disciplina.find(el=>el.id==2);
       });
       axios
-      .get('http://localhost/tesis/public/api/subdisciplinas')
+      .get(window.location.href+'api/subdisciplinas')
       .then(response3 => {
         this.combos.subdisciplina=response3.data;
         //this.model.sub = this.subdisciplina.find(el=>el.id==2);
       });
       axios
-      .get('http://localhost/tesis/public/api/asignaturas')
+      .get(window.location.href+'api/asignaturas')
       .then(response4 => {
         this.combos.materia=response4.data;
         //this.model.mat = this.asignaturas.find(el=>el.id==1);
       });
       axios
-      .get('http://localhost/tesis/public/api/rubrica')
+      .get(window.location.href+'api/rubrica')
       .then(response5 => {
         this.rubrica = response5.data;
         this.combos.rubrica=response5.data;
