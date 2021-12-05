@@ -137,7 +137,9 @@
     justify-content: left;
     flex-direction: column;
     margin-left: 10px;
-    margin-right: 10px;
+    margin-right: 10px;    
+    padding-top: 35px;
+    
 }
 #i_nuevo_contenedor{
     display: flex;
@@ -210,4 +212,16 @@
 }
 .estilo13{
     margin-top: 11px;
+}
+.btn_cab{
+    width: 33%;
+}
+.btn_cab2{
+    width: 34%;
+}
+.btn_interno{
+    width: 100%;
+}
+#sel_periodo{
+    font-size: 12px !important;
 }

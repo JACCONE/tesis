@@ -2,86 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\asignaturas;
 use Illuminate\Http\Request;
+use App\Models\asignaturas; 
 
 class AsignaturasController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-        $materias =  asignaturas::get();
-        return response()->json($materias);
-    }
+    //
+    public function update_asignatura(Request $request){
+        $ultimo =[];
+        $datos = json_decode($request->getContent(), true);
+        foreach($datos as $asi){
+            $asignatura = asignaturas::find($asi['id']);
+           if ($asignatura == null) {
+             $asignatura = new asignaturas();
+           }
+           $asignatura->id = $asi['id'];
+           $asignatura->id_subdisciplina = $asi['id_subdisciplina'];
+           $asignatura->nombre = $asi['nombre'];
+           $asignatura->estado = $asi['estado'];
+           $asignatura->save();  
+           array_push($ultimo, $asignatura->id);
+        }
+        return $ultimo; 
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
     }
 }

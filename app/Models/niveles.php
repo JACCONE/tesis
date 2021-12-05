@@ -9,4 +9,5 @@ class niveles extends Model
 {
     use HasFactory;
     protected $table = 'rubrica_niveles';
+
 }

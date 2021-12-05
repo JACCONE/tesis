@@ -3,20 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Rubrica;
+use App\Models\rubrica;
 
-class RubricaController extends Controller
+class rubricaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-
+    //
     public function index()
     {
         //
-        $rubrica =  Rubrica::get();
+        $rubrica =  rubrica::get();
         return response()->json($rubrica);
     }
     /**
@@ -37,7 +32,7 @@ class RubricaController extends Controller
      */
     public function store(Request $request)
     {
-        $rubrica = new Rubrica();
+        $rubrica = new rubrica();
         $rubrica->id_asignatura = $request->get('id_asignatura');
         $rubrica->id_docente = $request->get('id_docente');
         $rubrica->nombre = $request->get('nombre');
@@ -55,7 +50,7 @@ class RubricaController extends Controller
  {
      $datos = json_decode($request->getContent(), true);
      foreach($datos as $rub){
-        $rubrica = new Rubrica();
+        $rubrica = new rubrica();
         $rubrica->id_asignatura = $rub['id_asignatura'];
         $rubrica->id_docente = $rub['id_docente'];
         $rubrica->nombre = $rub['nombre'];
@@ -74,11 +69,11 @@ class RubricaController extends Controller
      */
     public function show($id_rubrica)
     {
-        $rubrica = Rubrica::find($id_rubrica);   
+        $rubrica = rubrica::find($id_rubrica);   
         return response()->json($rubrica);
         
     }
-  /*   public function show(Rubrica $rubrica)
+  /*   public function show(rubrica $rubrica)
     {
         //
         return response()->json($rubrica);
@@ -105,7 +100,7 @@ class RubricaController extends Controller
      */
     public function update(Request $request, $id_rubrica)
     {
-        $rubrica = Rubrica::find($id_rubrica);
+        $rubrica = rubrica::find($id_rubrica);
         $rubrica->id_asignatura = $request->get('id_asignatura');
         $rubrica->id_docente = $request->get('id_docente');
         $rubrica->nombre = $request->get('nombre');
@@ -126,9 +121,9 @@ class RubricaController extends Controller
         
         foreach($datos as $rub){
            //$temp_id = $rub['id'];
-           $rubrica = Rubrica::find($rub['id']);
+           $rubrica = rubrica::find($rub['id']);
            if ($rubrica == null) {
-             $rubrica = new Rubrica();
+             $rubrica = new rubrica();
            }
            $rubrica->id_asignatura = $rub['id_asignatura'];
            $rubrica->id_docente = $rub['id_docente'];
@@ -145,7 +140,7 @@ class RubricaController extends Controller
     {
         $datos = json_decode($request->getContent(), true);
         foreach($datos as $rub){
-           $rubrica = Rubrica::find($rub['id']);
+           $rubrica = rubrica::find($rub['id']);
            $rubrica->id_asignatura = $rub['id_asignatura'];
            $rubrica->id_docente = $rub['id_docente'];
            $rubrica->nombre = $rub['nombre'];
@@ -164,7 +159,7 @@ class RubricaController extends Controller
      */
     public function destroy($id_rubrica)
     {
-        $rubrica = Rubrica::find($id_rubrica);
+        $rubrica = rubrica::find($id_rubrica);
         if(!$rubrica->delete()){
             return response()->json(['message'=>'está mal el eliminado'],409);
        }
@@ -175,10 +170,15 @@ class RubricaController extends Controller
     public function DeleteMultiple(Request $request) //se pasa un array  con los id [1,2,3], ejemplo en postman
     {
         $datos = json_decode($request->getContent(), true);
+        if($datos != null){
         foreach($datos as $rub){     
-            $rubrica = Rubrica::find($rub);
+            $rubrica = rubrica::find($rub);
             $rubrica->delete();
         }
         return response()->json(['message'=>'está ok eliminado'],200); 
+       }else{
+        return response()->json(['message'=>'es nuevo no necesita eliminacion'],200); 
+       }
+        
     }
 }

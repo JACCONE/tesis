@@ -5,15 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Criterios;
 
+
 class CriteriosController extends Controller
 {
-  
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-
+    //
     public function index()
     {
         //
@@ -73,7 +68,7 @@ class CriteriosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id_rubrica) // para consultar criterios de determidad rubrica
+    public function show($id_rubrica) // para consultar Criterios de determidad rubrica
     {
         //$nivel = niveles::find($id)->where('id_rubrica', 61);
         $cri = Criterios::where('id_rubrica', $id_rubrica)->get();

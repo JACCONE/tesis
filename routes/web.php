@@ -1,9 +1,7 @@
 <?php
 
+use App\Http\Controllers\API\Autenticacion;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PrincipalController;
-use App\Http\Controllers\RurbricaController;
-use App\Http\Controllers\RutaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,7 +14,9 @@ use App\Http\Controllers\RutaController;
 |
 */
 
-//Route::get('/',PrincipalController::class);
+/* Route::get('/', function () {
+    return view('login');
+})->name('login'); */
 
-Route::get('/', [RutaController::class,'index']);
+Route::get('/', [Autenticacion::class,'validar'])->name('login');
 
