@@ -18,6 +18,24 @@ const aut = new Vue({
     fullHeight: false,
     fullHeightRubrica: false,
     drawer:false,
+    //NUEVAS 2021 -12-08
+
+    //PARA INGRESAR EXPERTO
+    experto_nombres:'',
+    experto_apellidos:'',
+    experto_formacion:'',
+    experto_cargo:'',
+    experto_institucion:'',
+    experto_pais:'',
+    experto_anios:'',
+    experto_email:'',
+    dense:false,
+    id_rubrica_actual:'',
+    expertos_list:[],
+    docentes_filtro: [],
+    docente_seleccionado:'',
+    label2:'',
+
     //para nuevos cambios en rub Jorge
     n_rub : '',
     d_rub : '',
@@ -117,7 +135,6 @@ const aut = new Vue({
           this.campo_periodo = response2.data;
         })
 
-
       });
 
       //aqui va la peticion de asignaturas
@@ -183,7 +200,192 @@ const aut = new Vue({
     } */
   },
   methods: {
-   filterFn (value) {
+    //metodos para expertos 2021-12-08
+    processOption(status,id_experto,nombres,mail){
+      //1: ENVIAR INVITACION -ESTADO INVITADO
+      //2: ACEPTAR INVITACION - ESTADO ACEPTO
+      //3: RECHAZAR INVITACION - ESTADO RECHAZO
+      //4: ENVIAR RUBRICA - ESTADO EVALUANDO
+      //5: ELIMINAR
+
+      switch (status) {
+          case 1:
+              let info = {
+                  id_experto: id_experto,
+                  NOMBRE: nombres,
+                  to: mail,
+                  CORREO_DOCENTE: this.email,
+                  DOCENTE: this.username,
+                  id_rubrica: this.id_rubrica_actual,
+              };
+
+              axios
+                  .post("experto/sendInvitation", info)
+                  .then((response30) => {
+                      console.log(response30);
+                      this.get_expertos(this.id_rubrica_actual);
+                  });
+              break;
+
+          case 2:
+              let info2 = {
+                  id_rubrica: this.id_rubrica_actual,
+                  id_experto: id_experto,
+                  estado: "ACEPTADO",
+              };
+
+              axios
+                  .post("experto/changeStatus", info2)
+                  .then((response30) => {
+                      console.log(response30);
+                      this.get_expertos(this.id_rubrica_actual);
+                  });
+              break;
+
+          case 3:
+              let info3 = {
+                  id_rubrica: this.id_rubrica_actual,
+                  id_experto: id_experto,
+                  estado: "RECHAZADO",
+              };
+
+              axios
+                  .post("experto/changeStatus", info3)
+                  .then((response30) => {
+                      console.log(response30);
+                      this.get_expertos(this.id_rubrica_actual);
+                  });
+              break;
+
+          case 4:
+              let info4 = {
+                  id_rubrica: this.id_rubrica_actual,
+                  id_experto: id_experto,
+                  estado: "EVALUANDO",
+              };
+
+              axios
+                  .post("experto/changeStatus", info4)
+                  .then((response30) => {
+                      console.log(response30);
+                      this.get_expertos(this.id_rubrica_actual);
+                  });
+              break;
+
+          case 5:
+              let info5 = {
+                  id_experto: id_experto,
+              };
+
+              axios
+              .delete("experto/delete/"+id_experto)
+              .then((response30) => {
+                  console.log(response30);
+                  this.get_expertos(this.id_rubrica_actual);
+              });
+              break;
+      }
+      
+    },
+    importDocente(docente){
+      this.experto_nombres = docente.nombres;
+      this.experto_apellidos = docente.apellido1 + " " + docente.apellido2;
+      this.experto_formacion = docente.titulo;
+      this.experto_cargo = docente.rol;
+      this.experto_institucion = docente.universidades;
+      this.experto_email = docente.correo;
+    },
+    filterFn (value) {
+      if(value !== ""){
+        axios
+        .get('expertos/docente_filtros/'+value.toUpperCase())
+        .then(response => {
+          this.docentes_filtro=response.data;
+        });
+      }
+    },
+    clearExpertosForm(){
+      this.experto_nombres='';
+      this.experto_apellidos='';
+      this.experto_formacion='';
+      this.experto_cargo='';
+      this.experto_institucion='';
+      this.experto_pais='';
+      this.experto_anios='';
+      this.experto_email='';
+    },
+
+      //METODOS PARA EXPERTOS
+
+      get_expertos(id_rubrica){
+        axios
+        .get('expertos/'+id_rubrica)
+        .then(response29 => {
+          this.expertos_list=response29.data;
+          this.id_rubrica_actual=id_rubrica;
+          this.docente_seleccionado=[];
+          this.clearExpertosForm();
+        });
+      },
+ /*      get_expertos(){//metodo para obtener datos generales de expertos por rubrica
+        let id_rubrica = 62; // quemado hasta resolver unir con la parte de la rubrica 
+        axios
+        .get('expertos/'+id_rubrica)
+        .then(response29 => {
+          this.expertos=response29.data;
+          console.log("expertos: ", this.expertos);
+          
+        });
+      },
+ */
+      set_expertos(){
+        let experto = {
+          "nombres":this.experto_nombres,
+          "apellidos":this.experto_apellidos,
+          "formacion":this.experto_formacion,
+          "cargo":this.experto_cargo,
+          "institucion":this.experto_institucion,
+          "pais":this.experto_pais,
+          "anios":this.experto_anios,
+          "email":this.experto_email
+        };
+
+        axios
+        .post('expertos/insertar',experto)
+        .then(response30 => {
+          let evaluaciones = {
+            "id_rubrica":this.id_rubrica_actual,
+            "estado":"AGREGADO"
+          };
+          axios
+          .post('evaluaciones',evaluaciones)
+          .then(response31 => {
+            this.get_expertos(this.id_rubrica_actual);
+            this.clearExpertosForm();
+          })
+        });
+      },
+/* 
+      set_expertos(){//metodo para insertar expertos y evaluaciones por rubrica
+        //armar array para pasar insert a expertos
+        let experto = {};
+        axios
+        .get('expertos/insertar',experto)
+        .then(response30 => {
+          //armar array para insert a evaluaciones
+          let evaluaciones = {};
+          axios
+          .post('evaluaciones',evaluaciones)
+          .then(response31 => {
+            console.log("estado de insert: ", response31.data);
+          })  
+          
+        });
+      }, */
+
+
+
+   filterFn_a (value) {
         if(value !== ""){
           console.log("este es el valor: ", value);
           value = value.toLowerCase();
@@ -322,34 +524,7 @@ const aut = new Vue({
     //FIN DE METODOS PARA SESION 
         //--------------------------------------------
         
-        //METODOS PARA EXPERTOS
-        get_expertos(){//metodo para obtener datos generales de expertos por rubrica
-          let id_rubrica = 62; // quemado hasta resolver unir con la parte de la rubrica 
-          axios
-          .get('expertos/'+id_rubrica)
-          .then(response29 => {
-            this.expertos=response29.data;
-            console.log("expertos: ", this.expertos);
-            
-          });
-        },
-
-        set_expertos(){//metodo para insertar expertos y evaluaciones por rubrica
-          //armar array para pasar insert a expertos
-          let experto = {};
-          axios
-          .get('expertos/insertar',experto)
-          .then(response30 => {
-            //armar array para insert a evaluaciones
-            let evaluaciones = {};
-            axios
-            .post('evaluaciones',evaluaciones)
-            .then(response31 => {
-              console.log("estado de insert: ", response31.data);
-            })  
-            
-          });
-        },
+  
 
         //----------------------------------------------------------
 

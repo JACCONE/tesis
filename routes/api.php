@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Autenticacion;
+use App\Http\Controllers\API\Autenticacion;
 use App\Http\Controllers\ModulosController;
 use App\Http\Controllers\datos_principales;
 use App\Http\Controllers\expertos;
@@ -64,6 +64,12 @@ Route::put('items',[ItemsController::class,'UpdateMultiple'])->name('items.Updat
 Route::get('expertos/{id_rubrica}',[expertos::class,'get_expertos'])->name('expertos.get_expertos');
 Route::post('expertos/insertar',[expertos::class,'set_expertos'])->name('expertos_insertar.set_expertos');
 Route::post('evaluaciones',[expertos::class,'set_evaluaciones'])->name('evaluaciones.set_evaluaciones');
+Route::get('expertos/docente_filtros/{like}',[expertos::class,'get_docentes_filtro'])->name('expertos_docente.get_docentes_filtro');
+Route::put('expertos/update_estado',[expertos::class,'update_estado'])->name('update_estado.update_estado');
+Route::post('experto/sender',[expertos::class,'mailfuncion'])->name('test.mailfuncion');
+Route::post('experto/sendInvitation',[expertos::class,'sendInvitation'])->name('test.sendInvitation');
+Route::post('experto/changeStatus',[expertos::class,'setStatus'])->name('test.setStatus');
+Route::delete('experto/delete/{id_experto}',[expertos::class,'deleteExperto'])->name('test.deleteExperto');
 
 //para periodos
 Route::get('periodos',[datos_principales::class,'get_periodos'])->name('periodos.get_periodos');

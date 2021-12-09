@@ -1,19 +1,58 @@
-.rub_1{
+.rub_1 {
     padding: 5px;
 }
 
-.card_r{
+.card_r {
     width: 100%;
     height: 80px;
 }
 
-.status{
+.status {
     margin-right: 10px;
     padding: 5px;
     border-radius: 6px;
     font-size: 10px !important;
 }
-.interface{
+
+.eval_container_0{
+    padding-top: 20px;
     display: flex;
     justify-content: center;
+}
+
+.eval_container_1 {
+    display: grid;
+    grid-template-columns: 50% auto;
+    width: 1400px;
+    padding: 5px;
+}
+
+.eval_new{
+    display: grid;
+    grid-template-rows: 40px auto auto;
+}
+
+.eval_list{
+    border-radius: 5px;
+    display: grid;
+    grid-template-rows: 30px auto;
+}
+
+.e_container{
+    padding: 5px;
+}
+
+
+.list_container{
+    overflow-y: scroll;
+    height: 508px;
+}
+
+.list_container::-webkit-scrollbar {
+    width: 4px;     /* Tamaño del scroll en vertical */
+}
+
+.list_container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
 }

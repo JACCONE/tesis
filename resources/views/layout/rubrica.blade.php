@@ -29,57 +29,14 @@
             label="Asignatura (UTM)" 
             behavior="menu"
             dense
-            @input-value="filterFn" 
+            @input-value="filterFn_a" 
             {{-- @input="importDocente" --}}>
             </q-select>
-
-            {{-- <q-select
-            filled
-            v-model="s_asignatura"
-            use-input
-            input-debounce="0"
-            label="Asignatura"
-            :options="asig_filtrado"
-            option-value="idmateria"
-            option-label="nombre"
-            @filter="filtro_asig"
-             style="width: 250px" 
-             behavior="menu"
-            dense
-           >
-            <template v-slot:no-option>
-              <q-item>
-                <q-item-section class="text-grey">
-                  Sin Resultados
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select> --}}
-            {{-- <q-select  
-            v-model="s_periodo" 
-            id="sel_periodo"
-            @input="get_asignaturas()"  
-            :options="campo_periodo" 
-            label="Periodo Académico" 
-            option-value="id"
-            option-label="nombre"
-            dense
-            
-            ></q-select> 
-            <q-select  
-            v-model="s_asignatura" 
-            @input="console.log('seleccion_materia')"  
-            :options="campo_asignatura" 
-            label="Asignatura" 
-            option-value="id_materia"
-            option-label="materia"
-            dense
-            ></q-select>  --}}
         </div>
     </div>
     <div style="width: 40%;max-height: 507px;">
-        <div style=" background: #1b5e20;">
-            <q-input dark color="grey-11" filled  label="Buscar..." label-color="white" v-model="filtro" ></q-input>
+        <div style=" background: #ffffff;">
+            <q-input dark color="grey-11" filled  label="Buscar..." label-color="black" v-model="filtro" ></q-input>
         </div>
 
         <q-scroll-area id="s_alto" style="height:86%; max-width: 100%; padding:10px;">
@@ -95,7 +52,7 @@
                         @{{rub.estado}}
                     </div>
                     <q-btn padding="8px 5px" color="green-6" icon="edit" title="Editar" @click="mostrar_rubrica(rub)"></q-btn>
-                    <q-btn padding="8px 5px" color="blue-6" icon="school" title="Evaluación" @click="fullHeight = true"></q-btn>
+                    <q-btn padding="8px 5px" color="blue-6" icon="school" title="Evaluación" @click="fullHeight = true, get_expertos(rub.id)"></q-btn>
                 </q-bar>
             </div>
         </template>
@@ -105,7 +62,97 @@
 </div>
 
 
+
 <!--MODAL DE EXPERTOS-->
+<q-dialog v-model="fullHeight" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
+  <q-card class="column full-height">
+      <q-card-section>
+          <div class="text-h6">Panel de evaluación</div>
+      </q-card-section>
+      <q-separator></q-separator>
+      <q-card-section class="col q-pt-none scroll">
+          <div class="eval_container_0" style="padding-top: 20px;">
+              <div class="eval_container_1">
+                  <div class="e_container eval_new">
+                      <div class="text-grey-8" style="padding: 5px;display: flex;justify-content: center;font-size: 1.25rem;font-weight: 500;">Ingresar Nuevo Experto</div>
+                      <div id="experto_base">
+                          <q-select filled v-model="docente_seleccionado" use-input :options="docentes_filtro" option-value="idpersonal" option-label="nombre_select" label="Docente (UTM)" stack-label :dense="dense" @input-value="filterFn" @input="importDocente"></q-select>
+                          <!--q-select filled v-model="model" :options="options" @filter="filterFn" style="width: 250px; padding-bottom: 32px"></q-select-->
+                      </div>
+                      <div id="experto_nuevo">
+                          <div class="text-grey-8" style="padding: 5px;font-style: oblique;font-weight: 500;">Externo:</div>
+                          <div>
+                              <div class="row">
+                                  <q-input class="col" outlined v-model="experto_nombres" label="Nombres" :dense="dense" style="padding: 3px;"></q-input>
+                                  <q-input class="col" outlined v-model="experto_apellidos" label="Apellidos" :dense="dense" style="padding: 3px;"></q-input>
+                              </div>
+                              <div class="row">
+                                  <q-input class="col" outlined v-model="experto_email" label="Correo electrónico" :dense="dense" style="padding: 3px;"></q-input>
+                              </div>
+                              <div class="row">
+                                  <q-input class="col" outlined v-model="experto_formacion" label="Formación Académica" :dense="dense" style="padding: 3px;"></q-input>
+                              </div>
+                              <div class="row">
+                                  <q-input class="col" outlined v-model="experto_cargo" label="Cargo Actual" :dense="dense" style="padding: 3px;"></q-input>
+                              </div>
+                              <div class="row">
+                                  <q-input class="col" outlined v-model="experto_institucion" label="Institución" :dense="dense" style="padding: 3px;"></q-input>
+                              </div>
+                              <div class="row">
+                                  <q-input class="col" outlined v-model="experto_pais" label="País" :dense="dense" style="padding: 3px;"></q-input>
+                                  <q-input class="col" outlined v-model="experto_anios" label="Años de Experiencia" type="number" :dense="dense" style="padding: 3px;"></q-input>
+                              </div>
+
+                          </div>
+                          <div style="padding: 5px;display: flex;justify-content: end;">
+                              <q-btn color="green-6" icon-right="add_circle" label="Agregar" @click="set_expertos"></q-btn>
+                          </div>
+
+                      </div>
+
+                  </div>
+                  <div class="e_container eval_list bg-grey-2">
+                      <div class="text-grey-8" style="padding: 5px;display: flex;justify-content: center;font-size: 1.25rem;font-weight: 500;">Lista</div>
+                      <div class="list_container">
+                          <template v-for="(exp, index) in expertos_list" :key="index">
+                              <div class="row rub_1">
+                                  <q-bar class="card_r shadow-1 bg-grey-1">
+                                      <div>
+                                          <div>@{{exp.nombres}} @{{exp.apellidos}}</div>
+                                          <div class="text-caption text-grey-7">@{{exp.email}} · @{{exp.cargo_actual}} · @{{exp.estado}}</div>
+                                      </div>
+                                      <q-space></q-space>
+                                      <q-btn v-if="exp.estado == 'AGREGADO'" padding="8px 5px" color="blue-6" icon="forward_to_inbox" title="Enviar Invitación" @click="processOption(1,exp.id_experto,exp.nombres,exp.email)"></q-btn>
+                                      <q-btn v-if="exp.estado == 'INVITADO'" padding="8px 5px" color="green-6" icon="thumb_up" title="Aceptó la invitación" @click="processOption(2,exp.id_experto,exp.nombres,exp.email)"></q-btn>
+                                      <q-btn v-if="exp.estado == 'INVITADO'" padding="8px 5px" color="red-7" icon="thumb_down" title="Rechazó la invitación" @click="processOption(3,exp.id_experto,exp.nombres,exp.email)"></q-btn>
+                                      <q-btn v-if="exp.estado == 'ACEPTADO'" padding="8px 5px" color="blue-6" icon="attach_email" title="Enviar rúbrica para evaluar" @click="processOption(4,exp.id_experto,exp.nombres,exp.email)"></q-btn>
+                                      <div style="margin-right: 0px;" v-if="exp.estado == 'TERMINADO'" class="status noselect bg-grey-4 text-grey-7">
+                                          @{{exp.estado}}
+                                      </div>
+                                      <div style="margin-right: 0px;" v-if="exp.estado == 'EVALUANDO'" class="status noselect bg-grey-4 text-grey-7">
+                                          @{{exp.estado}}
+                                      </div>
+                                      <q-btn v-if="exp.estado == 'RECHAZADO'" padding="8px 5px" color="red-9" icon="delete" title="Eliminar" @click="processOption(5,exp.id_experto,exp.nombres,exp.email)"></q-btn>
+                                  </q-bar>
+                              </div>
+                          </template>
+                      </div>
+                  </div>
+              </div>
+              <!--q-btn flat label="ENVIAR PRUEBA" color="green-9" @click="sendMail"></q-btn-->
+
+          </div>
+
+      </q-card-section>
+      <q-separator></q-separator>
+      <q-card-actions align="right">
+          <q-btn flat label="SALIR" color="green-9" v-close-popup></q-btn>
+      </q-card-actions>
+  </q-card>
+</q-dialog>
+
+
+{{-- <!--MODAL DE EXPERTOS-->
 <q-dialog v-model="fullHeight" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
     <q-card class="column full-height">
         <q-card-section>
@@ -126,7 +173,7 @@
         </q-card-actions>
     </q-card>
 </q-dialog>
-<!--MODAL DE EXPERTOS-->
+<!--MODAL DE EXPERTOS--> --}}
 
 <!--MODAL DE RUBRICA-->
 <q-dialog v-model="fullHeightRubrica" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
