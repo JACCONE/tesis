@@ -76,7 +76,9 @@
 
             <q-page-container>
                 <q-page>
-                <div id="rubrica_interface" class="interface" style="display: none;">@include('layout.rubrica')</div>
+                    <div id="rubrica_interface" class="interface" style="display: none;">@include('layout.rubrica')</div>
+                    <div id="rub_eval_interface" class="interface" style="display: none;">@include('layout.rub_eval')</div>
+
                 </q-page>
             </q-page-container>
         </q-layout>

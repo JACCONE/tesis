@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\rubrica;
+use Illuminate\Support\Facades\DB; 
 
 class rubricaController extends Controller
 {
@@ -180,5 +181,19 @@ class rubricaController extends Controller
         return response()->json(['message'=>'es nuevo no necesita eliminacion'],200); 
        }
         
+    }
+    public function update_estado(Request $request){
+        //$datos = json_decode($request->getContent(), true);
+        $id_rubrica = $request->get('id_rub');
+        $estado = $request->get('estado');
+      /*   $id_rubrica = $datos['id_rubrica'];
+        $estado = $datos['estado']; */
+        $info = DB::connection('pgsql')->select("
+        UPDATE tesis.rubricas
+        SET estado='$estado'
+        WHERE id = $id_rubrica
+        ");
+        return response()->json($info);
+       
     }
 }

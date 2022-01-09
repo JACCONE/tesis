@@ -1,10 +1,17 @@
 .rub_1 {
     padding: 5px;
 }
+.rub_1_exp {
+    padding: 10px;
+}
 
 .card_r {
     width: 100%;
     height: 80px;
+}
+.card_r_exp {
+    width: 100%;
+    height: 62px;
 }
 
 .status {

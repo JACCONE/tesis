@@ -20,6 +20,21 @@ class datos_principales extends Controller
         return response()->json($info, 200);
 
     }
+    public function get_rubricas_externos($correo){
+        $info = DB::connection('pgsql')->select(
+        "SELECT rub.id, eva.id as id_evaluacion, rub.nombre, rub.descripcion, rub.estado
+        FROM tesis.rubricas rub
+        inner join tesis.evaluaciones eva
+        on eva.id_rubrica = rub.id
+		inner join tesis.expertos exp
+		on exp.id = eva.id_experto
+        where exp.email= '$correo'
+        and rub.estado = 'EVALUACION'
+        and eva.estado = 'EVALUANDO'"
+        );
+        return response()->json($info, 200);
+    }
+    
     public function get_periodos(){
         $info = DB::connection('pgsql')->select(
         "SELECT idperiodo, nombre FROM esq_periodos_academicos.periodo_academico where actual = 'S' AND idtipo_periodo in (1,4,9,8)"

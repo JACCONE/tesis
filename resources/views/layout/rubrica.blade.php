@@ -36,7 +36,7 @@
     </div>
     <div style="width: 40%;max-height: 507px;">
         <div style=" background: #ffffff;">
-            <q-input dark color="grey-11" filled  label="Buscar..." label-color="black" v-model="filtro" ></q-input>
+            <q-input  label="Buscar..."  v-model="filtro" ></q-input>
         </div>
 
         <q-scroll-area id="s_alto" style="height:86%; max-width: 100%; padding:10px;">
@@ -52,7 +52,7 @@
                         @{{rub.estado}}
                     </div>
                     <q-btn padding="8px 5px" color="green-6" icon="edit" title="Editar" @click="mostrar_rubrica(rub)"></q-btn>
-                    <q-btn padding="8px 5px" color="blue-6" icon="school" title="Evaluación" @click="fullHeight = true, get_expertos(rub.id)"></q-btn>
+                    <q-btn padding="8px 5px" color="blue-6" icon="school" title="Evaluación" @click="get_expertos(rub.id)"></q-btn>
                 </q-bar>
             </div>
         </template>
@@ -179,7 +179,7 @@
 <q-dialog v-model="fullHeightRubrica" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
   <q-card class="column full-height">
       <q-card-section>
-          <div class="text-h6">Gestión de Rúbrica</div>
+          <div class="text-h6">@{{n_rub}}</div>
       </q-card-section>
       <q-separator></q-separator>
       <q-card-section class="col q-pt-none scroll">
@@ -285,9 +285,14 @@
           
       </q-card-section>
       <q-separator></q-separator>
-      <q-card-actions align="right">
-          <q-btn flat label="SALIR" color="green-9" @click="validacion_salir_edicion_rubrica"></q-btn>
-          <q-btn flat label="GUARDAR" color="green-9" @click="actualizar_bd()"></q-btn>
+      <q-card-actions class="row justify-between">
+        <div>          
+          <q-btn flat label="Volver" color="green-9" @click="validacion_salir_edicion_rubrica"></q-btn>
+        </div>
+        <div>          
+{{--           <q-btn flat label="Finalizar" color="green-9" @click="validacion_rubrica_completa"></q-btn>
+ --}}          <q-btn flat label="Guardar" color="green-9" @click="actualizar_bd()"></q-btn>
+        </div>
       </q-card-actions>
   </q-card>
 </q-dialog>

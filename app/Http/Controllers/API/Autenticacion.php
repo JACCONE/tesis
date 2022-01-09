@@ -38,6 +38,19 @@ class Autenticacion extends Controller
         return response()->json($jsonRespuesta, 200);
 
     }
+    public function login_externos(Request $request){
+        $datos = json_decode($request->getContent(), true);
+        $email = $datos['email'];
+        $pass = $datos['password'];
+        $info = DB::connection('pgsql')->select("SELECT ex.id,'EXTERNO' as rol, ex.nombres, ex.email from tesis.expertos ex
+        inner join tesis.expertos_temp_users tm
+        on tm.usuario = ex.email
+        where tm.usuario = '$email'
+        and tm.password = '$pass'
+        and tm.status = 1;
+        ");
+        return response($info);
+    }
 
     public function usuario(Request $request)
     {

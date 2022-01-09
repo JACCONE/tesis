@@ -12,6 +12,7 @@ use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\RubricaController;
 use App\Http\Controllers\AsignaturasController;
+use App\Http\Controllers\evaluaciones;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //para sesiones
 Route::post('/autenticar', [Autenticacion::class,'login'])->name('autenticar');
+Route::post('/autenticar/externos', [Autenticacion::class,'login_externos'])->name('autenticar_externos');
+
 Route::post('/registrar', [Autenticacion::class,'usuario'])->name('registrar');
 Route::delete('/logout', [Autenticacion::class,'salir'])->name('logout');
 Route::get('/home', [Autenticacion::class,'sesion'])->name('home');
@@ -39,6 +42,9 @@ Route::get('modulos/{rol}',[ModulosController::class,'get_modulos'])->name('modu
 
 //rubricas
 Route::get('rub_general/{id_docente}',[datos_principales::class,'get_rubricas'])->name('rub_general.get_rubrica');
+Route::get('rub_general/experto/{id_externo}',[datos_principales::class,'get_rubricas_externos'])->name('rub_general.get_rubricas_externos');
+
+
 Route::post('rubrica',[RubricaController::class,'store'])->name('rubrica.store');
 Route::post('rubrica/multiple',[RubricaController::class,'StoreMultiple'])->name('rubrica.StoreMultiple');
 Route::delete('rubrica/{id_rubrica}',[RubricaController::class,'destroy'])->name('rubrica.destroy');
@@ -70,7 +76,8 @@ Route::post('experto/sender',[expertos::class,'mailfuncion'])->name('test.mailfu
 Route::post('experto/sendInvitation',[expertos::class,'sendInvitation'])->name('test.sendInvitation');
 Route::post('experto/changeStatus',[expertos::class,'setStatus'])->name('test.setStatus');
 Route::delete('experto/delete/{id_experto}',[expertos::class,'deleteExperto'])->name('test.deleteExperto');
-
+Route::post('experto/sendRubric',[expertos::class,'sendRubric'])->name('test.sendRubric');
+Route::post('experto/getRubricaNombre/{id_rubrica}',[expertos::class,'getRubricaNombre'])->name('test.getRubricaNombre');
 //para periodos
 Route::get('periodos',[datos_principales::class,'get_periodos'])->name('periodos.get_periodos');
 
@@ -80,3 +87,13 @@ Route::get('asignaturas',[datos_principales::class,'get_asignaturas'])->name('as
 
 //para asignaturas
 Route::put('asignatura',[AsignaturasController::class,'update_asignatura'])->name('asignaturas.update_asignatura');
+
+//para evaluaciones de rubrica por expertos
+Route::put('evaluacion/general',[evaluaciones::class,'update_evaluacion'])->name('evaluacion_general.update_evaluacion');
+Route::put('evaluacion/suficiencia',[evaluaciones::class,'update_suficiencia'])->name('evaluacion_suficiencia.update_suficiencia');
+Route::post('obtener/suficiencia',[evaluaciones::class,'get_suficiencia'])->name('obtener_suficiencia.get_suficiencia');
+Route::post('obtener/evaluacion',[evaluaciones::class,'get_evaluacion'])->name('obtener_evaluacion.get_evaluacion');
+
+Route::put('rubrica/estado',[RubricaController::class,'update_estado'])->name('rurbica_estado.update_estado');
+Route::post('finalizar/evaluacion',[evaluaciones::class,'finalizar_evaluacion'])->name('finalizar_evaluacion.finalizar_evaluacion');
+

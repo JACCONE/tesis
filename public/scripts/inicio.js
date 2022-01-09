@@ -13,10 +13,13 @@ const aut = new Vue({
     modulos:[],
     currentPage:'rubrica',
     rub_general: [],
+    rub_general_expertos: [],
+
     fixed: false,
     maximizedToggle: true,
     fullHeight: false,
     fullHeightRubrica: false,
+    fullHeightRubrica2: false, // PARA VISUAL DE RUBRICA SOLO VISUAL SIN EDICION
     drawer:false,
     //NUEVAS 2021 -12-08
 
@@ -48,9 +51,11 @@ const aut = new Vue({
     campo_asignatura :[{
       "id":2, "nombre_a": 'Matemáticas'
     }],
-  rub_filtrado: [], //para el buscador de rubricas
-  texto: '', // ""
+    rub_filtrado: [], //para el buscador de rubricas
+    rub_filtrado_expertos: [], // para el buscador de rubricas a evaluar
 
+    texto: '', // ""
+    texto_exp: '',
   //PARA LA GESTION DE LA RUBRICA
   t_niveles :[ // niveles de l cabecera de la rubrica
     {texto: 'Totalmente Adecuado', valor: 4, id_b: 'b1', id:0, id_r:0},
@@ -101,7 +106,39 @@ const aut = new Vue({
   asignatura_seleccionado: '',
   asignatura_filtro:[],
   total_asig: [],
-  control:0 // control para guardar editar rubrica
+  control:0,// control para guardar editar rubrica
+
+  // 19/12/2021 para parte nueva de gestor de evaluaciones
+  externo: false,
+  cabecera_eval: [
+  'CRITERIO',
+  'ITEM',
+  'SUFICIENCIA',
+  'COHERENCIA',
+  'RELEVANCIA',
+  'CLARIDAD',
+  'OBSERVACIÓN'
+  ],
+  temp: 0, //para control de construccion de matriz de evaluacion de rubrica
+  n_coherencia:'',
+  n_relevancia:'',
+  n_claridad:'',
+  n_suficiencia:'',
+  n_observacion:'',
+  m_criterio:'',
+  m_item:'',
+  disable_c:true,
+  disable_i:true,
+  id_rub_exp_temp: '',
+  id_eval_exp: '',
+  id_eval_temp_gen: 11111111,
+  id_eval_temp_suf: 11111111,
+  n_rub_visual:'',
+  persistent2_v:false,
+  t_nivel_criterio_temp_v: '',
+  confirm_1:false,
+  confirm_2:false,
+  eva_observacion: ''
   /* 
   asig_filtrado: [] */
   
@@ -116,10 +153,12 @@ const aut = new Vue({
     cookie_array.forEach(element => {
       if(element.includes("TOKEN_1")== true){
         validador = 1;
+        console.log("validador: ", validador);
       }
     });
     if(validador == 1){
       console.log(this.getCookie('TOKEN_2'));
+
       axios
       .get('modulos/'+this.getCookie('TOKEN_2'))
       .then(response => {
@@ -129,23 +168,29 @@ const aut = new Vue({
         this.username = this.getCookie('TOKEN_3');
         this.email = this.getCookie('TOKEN_4');
         //peticion para obtener periodos
-        axios.get('periodos')
-        .then(response2 => {
-          console.log("periodos: ", response2.data);
-          this.campo_periodo = response2.data;
-        })
+            if(this.getCookie('TOKEN_2') != "EXTERNO"){  
+              axios.get('periodos')
+              .then(response2 => {
+                console.log("periodos: ", response2.data);
+                this.campo_periodo = response2.data;
+              })
+            }
+          });
 
-      });
+          //aqui va la peticion de asignaturas
+        if(this.getCookie('TOKEN_2') != "EXTERNO"){  
+          axios
+          .get('asignaturas')
+          .then(response_a => {
+            this.total_asig = response_a.data;
+            this.asignatura_filtro = this.total_asig;
+            console.log("total de asignaturas: ", this.total_asig);
 
-      //aqui va la peticion de asignaturas
-      axios
-      .get('asignaturas')
-      .then(response_a => {
-        this.total_asig = response_a.data;
-        this.asignatura_filtro = this.total_asig;
-        console.log("total de asignaturas: ", this.total_asig);
-
-      });
+          });
+        }else{
+          //peticion para rubricas a evaluar de experto externo
+          //this.get_rubricas_expertos();
+        }
 
 
     }
@@ -187,21 +232,200 @@ const aut = new Vue({
         this.texto = value
       }
     },
-    /* filtro2:{
-      get(){
-        return this.texto
-      },
-      set(value){
-        console.log('filtro ejecutado asignaturas!');
-        value = value.toLowerCase();
-        this.asig_filtrado = this.total_asig.filter(asig => asig.nombre.toLowerCase().indexOf(value) !== -1)
-        this.texto = value
-      }
-    } */
   },
   methods: {
+    //metodos para evaluar rubrica
+    salir_visual_texto(){
+      this.persistent2_v = false, 
+      this.t_nivel_criterio_temp_v=''
+    },
+    finalizar_evaluacion(){
+      console.log("finalizacion");
+      this.confirm_2 = true;
+    },
+    finalizar_evaluacion_confirmacion(){
+      this.confirm_1 = false;
+      if(this.id_rub_exp_temp != ""){
+        let datos ={
+          "id_eva": this.id_eval_exp,
+          "id_rubrica": this.id_rub_exp_temp,
+          "email":this.getCookie('TOKEN_4'),
+          "tipo": this.getCookie('TOKEN_2'),
+          "observacion": this.eva_observacion
+        }
+        
+        axios.post("finalizar/evaluacion",datos)
+        .then(final =>{
+          console.log("respuesta de finalizacion: ", final.data);
+          if(final.data == 0){
+            this.confirm_1 = true;
+            
+          }else{
+            this.get_rubricas_expertos();
+            //camboar el update del status del experto exxterno por un delete del registro de la clave
+            this.n_suficiencia = '';
+            this.n_coherencia= '';
+            this.n_relevancia= '';
+            this.n_claridad= '';
+            this.n_observacion= '';
+            this.m_criterio='';
+            this.m_item='';
+            this.eva_observacion = '';
+            this.confirm_2 = false;
+          }
+          
+        });
+      }
+    },
+    llenar_items(){
+      let suf = [];
+      this.m_item = '';
+      this.vaciar_array_temporal(this.item_criterio_temporal);
+      console.log("criterio seleccionado: ", this.m_criterio);
+      this.t_criterios.items.forEach(element => {
+        if(element.id_c == this.m_criterio.id_c){
+          let valor_item = {id_i: element.id_i, n_item: element.n_item};
+          this.item_criterio_temporal.push(valor_item);
+          this.disable_c = false;
+          
+        }
+        
+      });
+      //peticiones para obtener si ya existe suficiencia guardada
+      let temp4 = {
+        'id_evaluacion':this.id_eval_exp,
+        'id_criterio':this.m_criterio.id_c
+      };
+      axios
+      .post('obtener/suficiencia', temp4)
+      .then(get_suf => {
+        //console.log("suficiencia obtenida: ", get_suf.data[0]['suficiencia']);
+        if(get_suf.data.length > 0){
+          this.id_eval_temp_suf = get_suf.data[0]['id'];
+          this.n_suficiencia = get_suf.data[0]['suficiencia'];
+          this.n_coherencia= '';
+          this.n_relevancia= '';
+          this.n_claridad= '';
+          this.n_observacion= '';
+        }else if(get_suf.data.length == 0){
+          this.n_suficiencia = '';
+          this.n_coherencia= '';
+          this.n_relevancia= '';
+          this.n_claridad= '';
+          this.n_observacion= '';
+          this.id_eval_temp_gen = 11111111;
+          //this.id_eval_temp_suf = 11111111;
+        }
+        
+      });
+
+    },
+    activar_evaluacion(){
+      this.disable_i = false;
+      let eva_g = [];
+      //peticion para obtener si ya existen registros 
+      const eva = this.id_eval_exp
+      let temp5 = {
+        'id_eva':eva,
+        'id_item':this.m_item.id_i
+      };
+      console.log("temporal 5: ", temp5);
+      eva_g.push(temp5);
+      axios
+      .post('obtener/evaluacion',temp5)
+      .then(eva_general => {
+        console.log("prueba: ", eva_general.data);
+          if(eva_general.data.length > 0){
+          this.id_eval_temp_gen = eva_general.data[0]['id'];
+          this.n_coherencia= eva_general.data[0]['coherencia'];
+          this.n_relevancia= eva_general.data[0]['relevancia'];
+          this.n_claridad= eva_general.data[0]['claridad'];
+          this.n_observacion= eva_general.data[0]['observacion'];
+        }else if(eva_general.data.length == 0){
+          this.n_coherencia= '';
+          this.n_relevancia= '';
+          this.n_claridad= '';
+          this.n_observacion= '';
+          this.id_eval_temp_gen = 11111111;
+          //this.id_eval_temp_suf = 11111111;
+        }  
+      });
+    },
+    validar_limite(){
+      if(this.n_coherencia > 4 || this.n_coherencia < 1 && this.n_coherencia !=''){
+        alert("el rango de valores es de 1 a 4");
+        this.n_coherencia = 1;
+      }
+      if(this.n_relevancia > 4 || this.n_relevancia < 1 && this.n_relevancia !=''){
+        alert("el rango de valores es de 1 a 4");
+        this.n_relevancia = 1;
+      }
+      if(this.n_claridad > 4 || this.n_claridad < 1 && this.n_claridad !=''){
+        alert("el rango de valores es de 1 a 4");
+        this.n_claridad = 1;
+      }
+      if(this.n_suficiencia > 4 || this.n_suficiencia < 1 && this.n_suficiencia !=''){
+        alert("el rango de valores es de 1 a 4");
+        this.n_suficiencia = 1;
+      }
+    },
+    evaluar_rubrica(id_rubrica){
+      this.cargar_data_rubrica(id_rubrica);
+      //obtencion de valores para posterior update de la evaluacion
+      this.id_rub_exp_temp = id_rubrica;
+      this.rub_general.forEach(gen => {
+        if(gen.id == id_rubrica){
+          this.id_eval_exp = gen.id_evaluacion;
+        }
+      });
+
+      
+    },
+    guardar_evaluacion_item(){
+      console.log("aqui se guarda la evaluacion de la rubrica");
+      let eval = [];
+      let eval_suf = [];
+      //validaciones de campos llenos
+      if(this.n_suficiencia == '' || this.n_coherencia == '' || this.n_relevancia == '' || this.n_claridad == ''){
+        alert("Suficiencia, Coherencia, Relevancia y Claridad deben tener un valor");
+      }else{
+        //preparar arrays para peticiones
+        let temp = {
+          'id': this.id_eval_temp_gen, 
+          'id_evaluacion': this.id_eval_exp, 
+          'id_item': this.m_item.id_i,
+          'coherencia' : this.n_coherencia,
+          'relevancia' :this.n_relevancia,
+          'claridad' : this.n_claridad,
+          'observacion': this.n_observacion
+        };
+        eval.push(temp);
+        axios
+        .put('evaluacion/general',temp )
+        .then(response_eva =>{
+          console.log("response de evaluacion: ", response_eva.data);
+          //peticion para guardar suficiencia
+          let temp2 = {
+            'id': this.id_eval_temp_suf,
+            'id_evaluacion': this.id_eval_exp, 
+            'id_criterio': this.m_criterio.id_c,
+            'suficiencia': this.n_suficiencia
+          }; 
+          eval_suf.push(temp2);
+          axios
+          .put('evaluacion/suficiencia',temp2)
+          .then(response_suf => {
+            console.log("se guardó la suficiencia: ", response_suf.data);
+          });
+
+        })
+        
+      }
+    },
+
     //metodos para expertos 2021-12-08
-    processOption(status,id_experto,nombres,mail){
+    processOption(status,id_experto,nombres,mail,apellidos){
+      
       //1: ENVIAR INVITACION -ESTADO INVITADO
       //2: ACEPTAR INVITACION - ESTADO ACEPTO
       //3: RECHAZAR INVITACION - ESTADO RECHAZO
@@ -224,6 +448,19 @@ const aut = new Vue({
                   .then((response30) => {
                       console.log(response30);
                       this.get_expertos(this.id_rubrica_actual);
+
+                      //añadido 31/12/2021 para cambiar estado de la rubrica
+                      let estado = [];
+                      let temp_est = {
+                        "id_rub": this.id_rubrica_actual,
+                        "estado": "EVALUACION"
+                      };
+                      estado.push(temp_est);
+                      axios
+                        .put("rubrica/estado",temp_est)
+                        .then(est =>{
+                          console.log("cambio del estado realizado a EVALUACION");
+                        });
                   });
               break;
 
@@ -259,13 +496,16 @@ const aut = new Vue({
 
           case 4:
               let info4 = {
-                  id_rubrica: this.id_rubrica_actual,
+                  nombres: nombres,
+                  apellidos: apellidos,
+                  to: mail,
+                  DOCENTE: this.username,
                   id_experto: id_experto,
-                  estado: "EVALUANDO",
+                  id_rubrica: this.id_rubrica_actual
               };
 
               axios
-                  .post("experto/changeStatus", info4)
+                  .post("experto/sendRubric", info4)
                   .then((response30) => {
                       console.log(response30);
                       this.get_expertos(this.id_rubrica_actual);
@@ -318,26 +558,34 @@ const aut = new Vue({
       //METODOS PARA EXPERTOS
 
       get_expertos(id_rubrica){
-        axios
-        .get('expertos/'+id_rubrica)
-        .then(response29 => {
-          this.expertos_list=response29.data;
-          this.id_rubrica_actual=id_rubrica;
-          this.docente_seleccionado=[];
-          this.clearExpertosForm();
+        let estado_temp = '';
+        let prueba = '';
+        this.rub_general.forEach(rub_gen => {
+          if(rub_gen.id == id_rubrica){
+            estado_temp = rub_gen.estado;
+            prueba = "rubrica: " + rub_gen.nombre + ' id: ' + rub_gen.id;
+          }
         });
+        if(estado_temp == "COMPLETADA" || estado_temp == "EVALUACION"){
+          axios
+          .get('expertos/'+id_rubrica)
+          .then(response29 => {
+            this.expertos_list=response29.data;
+            this.id_rubrica_actual=id_rubrica;
+            this.docente_seleccionado=[];
+            this.clearExpertosForm();
+            this.fullHeight = true;
+          });
+        }else if(estado_temp == "EDICION"){
+          console.log("estado actual de la rubrica: ", estado_temp);
+          console.log(prueba);
+          alert("La Rubrica no está completada!");
+        }else{
+          alert("La Rubrica no se encuentra en estado para evaluación!")
+        }
+
+        
       },
- /*      get_expertos(){//metodo para obtener datos generales de expertos por rubrica
-        let id_rubrica = 62; // quemado hasta resolver unir con la parte de la rubrica 
-        axios
-        .get('expertos/'+id_rubrica)
-        .then(response29 => {
-          this.expertos=response29.data;
-          console.log("expertos: ", this.expertos);
-          
-        });
-      },
- */
       set_expertos(){
         let experto = {
           "nombres":this.experto_nombres,
@@ -347,10 +595,41 @@ const aut = new Vue({
           "institucion":this.experto_institucion,
           "pais":this.experto_pais,
           "anios":this.experto_anios,
-          "email":this.experto_email
+          "email":this.experto_email,
+          "id_rubrica":this.id_rubrica_actual,
+          "estado":"AGREGADO"
         };
 
         axios
+        .post('expertos/insertar',experto)
+        .then(response30 => {
+          this.get_expertos(this.id_rubrica_actual);
+            this.clearExpertosForm();
+        });
+      },
+     /*  set_expertos(){
+        let experto = {
+          "nombres":this.experto_nombres,
+          "apellidos":this.experto_apellidos,
+          "formacion":this.experto_formacion,
+          "cargo":this.experto_cargo,
+          "institucion":this.experto_institucion,
+          "pais":this.experto_pais,
+          "anios":this.experto_anios,
+          "email":this.experto_email
+        }; */
+/* VALIDACION DE SI EXISTE CON EL CORREO o si ya esta en uso
+mensaje que diga que seleccion del combo de expertos ya ingresados sea externo o interno
+validacion desde el controlador si existe
+validacion de cuando seleccione del combo de ya ingresados no permita edicion 
+validar el envio del correo si es interno (docente, estudiantes @utm) no generar usuario y contraseñas
+*/
+
+/*
+PARA VALIDACION DE ESTADO EVALUADA HACERLO EN PHP con varias consultas...
+validar que se tome en cuenta el status para usuarios externos en el inicio de sesion
+*/ 
+   /*      axios
         .post('expertos/insertar',experto)
         .then(response30 => {
           let evaluaciones = {
@@ -363,23 +642,6 @@ const aut = new Vue({
             this.get_expertos(this.id_rubrica_actual);
             this.clearExpertosForm();
           })
-        });
-      },
-/* 
-      set_expertos(){//metodo para insertar expertos y evaluaciones por rubrica
-        //armar array para pasar insert a expertos
-        let experto = {};
-        axios
-        .get('expertos/insertar',experto)
-        .then(response30 => {
-          //armar array para insert a evaluaciones
-          let evaluaciones = {};
-          axios
-          .post('evaluaciones',evaluaciones)
-          .then(response31 => {
-            console.log("estado de insert: ", response31.data);
-          })  
-          
         });
       }, */
 
@@ -406,6 +668,7 @@ const aut = new Vue({
     },
     //METODO PARA CONTROLLAR INTERFACES 2021-11-04
     changeInterface(plantilla,plantilla_nombre){
+      console.log("pantilla: ", plantilla, " nombre: ", plantilla_nombre);
       this.plantilla_name = plantilla_nombre;
       
       var interfaces = document.getElementsByClassName('interface');
@@ -419,18 +682,38 @@ const aut = new Vue({
         case 'rubrica':
           this.get_rubricas();
           break;
+        case 'rub_eval': 
+          this.get_rubricas_expertos();
+          break;
         default:
       }
     },
     //---------------------------------------------------------------
     get_rubricas(){//peticion para datos generales de rubricas
-      let id_docente = 1; // quemado hasta resolver lo de la sesion  
+     // let id_docente = 1; // quemado hasta resolver lo de la sesion  
       axios
       .get('rub_general/'+this.getCookie("TOKEN_1"))
       .then(response25 => {
         this.rub_general=response25.data;
         this.rub_filtrado = this.rub_general;
         console.log("rubricas: ", this.rub_general);
+        //this.model.sub = this.subdisciplina.find(el=>el.id==2);
+      });
+    },
+    get_rubricas_expertos(){//peticion para datos generales de rubricas de expertos para evaluar
+      //let id_docente = 1; // quemado hasta resolver lo de la sesion  
+      axios
+      .get('rub_general/experto/'+this.getCookie("TOKEN_4"))
+      .then(response_4 => {
+        //this.rub_general=response_4.data;
+        //this.rub_filtrado = this.rub_general; 
+        console.log("rubricas: ", response_4.data);
+        this.rub_general=response_4.data;
+        let tmp = response_4.data;
+        this.rub_filtrado = tmp; 
+        //traer id_evaluacion
+
+        
         //this.model.sub = this.subdisciplina.find(el=>el.id==2);
       });
     },
@@ -490,7 +773,54 @@ const aut = new Vue({
                 }) */
               });                   
             }else{
-              alert("Autenticación Fallida");
+              
+              //nuevo para autenticar expertos externos
+              axios
+              .post('api/autenticar/externos',datos)
+              .then(response2 => {
+                console.log("respuesta 1: ", response2.data);
+                if(response2.data.length > 0){
+                  this.id_pesonal_temp = response2.data[0].id;
+                  let ok = {
+                    'cedula': "externo",
+                    'id_personal': this.id_pesonal_temp,
+                    'email': this.user,
+                    'nombres': response2.data[0].nombres,
+                    'password': this.password,
+                    'rol': response2.data[0].rol
+                  };
+                  axios 
+                  .post('api/registrar',ok)
+                  .then(response3 => {
+                    console.log("response de registro: ", response3.data);
+                    document.cookie = "TOKEN_1="+response2.data[0].id;
+                    document.cookie = "TOKEN_2="+response2.data[0].rol;
+                    document.cookie = "TOKEN_3="+response2.data[0].nombres;
+                    document.cookie = "TOKEN_4="+response2.data[0].email;
+                    location.href = window.location.href+'api/home';
+                    /* axios
+                    .get('api/home')
+                    .then(response30 =>{
+                      document.body.innerHTML = response30.data;
+    
+                    }) */
+                  });                   
+
+                  /* this.id_pesonal_temp = response2.data[0].id;
+                  document.cookie = "TOKEN_1="+response2.data[0].id;
+                  document.cookie = "TOKEN_2="+response2.data[0].rol;
+                  document.cookie = "TOKEN_3="+response2.data[0].nombres;
+                  document.cookie = "TOKEN_4="+response2.data[0].email;
+                  location.href = window.location.href+'api/home';
+ */
+                }else{
+                  alert("Autenticación Fallida");
+                }
+
+                
+              })
+
+              
             }
 
           });
@@ -510,14 +840,16 @@ const aut = new Vue({
       .delete('logout',)
       .then(response27 => {
         console.log("respuesta de salir: ", response27.data);
-        document.cookie = "TOKEN_1=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/sistema/public;";
-        document.cookie = "TOKEN_2=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/sistema/public;";
+        document.cookie = "TOKEN_1=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/tesis/public";
+        document.cookie = "TOKEN_2=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/tesis/public;";
+        document.cookie = "TOKEN_3=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/tesis/public;";
+        document.cookie = "TOKEN_4=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/tesis/public;";
         /* axios
         .get('http://localhost/sistema/public/')
         .then(response28 => {
 
         }) */
-        location.href ="http://localhost/sistema/public/";
+        location.href = window.location.href;
       });
     },
 
@@ -529,6 +861,13 @@ const aut = new Vue({
         //----------------------------------------------------------
 
     //METODOS PARA GESTION DE RUBRICA
+    validacion_rubrica_completa(){
+      //para validar que la rubrica este completa y cambiarla de estado
+      //validar total porcentaje
+      //multiplicar criterios por niveles y debe ser igual a la cantidad de descripcion niveles registrados
+      
+    },
+
     nueva_rubrica(){
       //validacion campos obligatorios llenos
       if(this.n_rub.trim() == "" || this.d_rub.trim() == ""  || this.s_asignatura == ''){
@@ -746,7 +1085,7 @@ const aut = new Vue({
         //validacion para verificar que ha nombrado todos los items
         const items = this.t_criterios.items.filter(x => x.id_c == this.id_criterio);
         items.forEach(element => {
-          let posicion = this.t_nivel_criterio_temp.indexOf(element.n_item);
+          let posicion = this.t_nivel_criterio_temp.toUpperCase().indexOf(element.n_item.toUpperCase());
           if(posicion !== -1){
 
           }else{
@@ -821,13 +1160,37 @@ const aut = new Vue({
       const items_criterios = [];
       let asignaturas_temp = [];
       //preparar la data
+      
+      //validacion de estado
+        //validacion de porcentaje
+        let total = 0;
+        let estado_d = 'EDICION';
+        this.t_criterios.criterio.forEach(crit => {
+          total = total + parseInt(crit.porcentaje);
+        });
+        if(total != 100){
+          console.log("aún está en edición: ", total);
+          estado_d = "EDICION";
+        }else{
+          console.log("esta completada: ", total);
+          let cant_niv = this.t_niveles.length;
+          let cant_cri = this.t_criterios.criterio.length;
+          let cant_mul = cant_niv * cant_cri;
+          if(this.t_criterios.texto_niveles.length == cant_mul && cant_cri >= 4){
+            estado_d = "COMPLETADA";
+          }else{
+            estado_d = "EDICION";
+          }
+          
+        }
+
 
       const array_rubrica = {
         "id_asignatura" : this.s_asignatura.idmateria,
         "id_docente" : this.getCookie("TOKEN_1"),
         "nombre" : this.n_rubrica,
         "descripcion" : this.d_rubrica,
-        "estado": "EN PROCESO"
+        "estado": estado_d
       };    
       console.log("array pasado a rubrica: ", array_rubrica);
       //peticion primero para guardar asignatura en tabla interna
@@ -842,7 +1205,7 @@ const aut = new Vue({
       axios
       .put('asignatura',asignaturas_temp )
       .then(response_a =>{
-        console.log("se guardó asignatura?: ", response_a.data);
+        //console.log("se guardó asignatura?: ", response_a.data);
         axios
         .post('rubrica',array_rubrica)// ejemplo para update pasar id_rubrica
         .then(response => {
@@ -874,10 +1237,10 @@ const aut = new Vue({
           axios
             .post('criterio/multiple',rubrica_criterios)
             .then(response3=>{
-              console.log("response de criterios: ", response3.data);
+              //console.log("response de criterios: ", response3.data);
               criterios= response3.data;
-              console.log("criterios: ", criterios);
-              console.log("hola3");
+              //console.log("criterios: ", criterios);
+              //console.log("hola3");
               this.persistent4 = false;
   
                       
@@ -928,10 +1291,30 @@ const aut = new Vue({
               axios
             .post('items/multiple',items_criterios)
             .then(response5 =>{
-              //console.log("response de items: ", response5.data);
+              
+              console.log("rubrica despues de guardar: ", id_rubrica);
+              this.id_rub_temp = id_rubrica;
+              this.get_rubricas();
+              this.limpiar_rubrica(); 
+              //this.cargar_data_rubrica(id_rubrica);
+              
+              //validacion de porcentaje
+            /*   let total = 0;
+              this.t_criterios.criterio.forEach(crit => {
+                total = total + parseInt(crit.porcentaje);
+              });
+              if(total != 100){
+                console.log("aún está en edición: ");
+              }else{
+                console.log("esta completada");
+              } */
+              
+              
+              
+
             })
-            this.limpiar_rubrica(); 
-            this.get_rubricas();
+            
+            
             this.fullHeightRubrica = false;
             //this.cargar_data_combos();
             })
@@ -1095,6 +1478,20 @@ const aut = new Vue({
     }
     this.control_guardar_editar = 1;
     },
+    editar_nivel_criterio_v(id_c, valor){
+      this.valor_actual = valor;
+      this.id_criterio = id_c;
+      
+      for (let index = 0; index < this.t_criterios.texto_niveles.length; index++) {
+        if(this.t_criterios.texto_niveles[index].id_c == this.id_criterio && this.t_criterios.texto_niveles[index].nivel == this.valor_actual){
+          let texto = this.t_criterios.texto_niveles[index].texto;
+          this.t_nivel_criterio_temp_v = texto;
+        }else{
+        }
+      }
+      this.persistent2_v = true; 
+  
+    },
     editar_nivel_criterio(id_c, valor){
       this.valor_actual = valor;
       this.id_criterio = id_c;
@@ -1161,39 +1558,43 @@ const aut = new Vue({
       this.validador= 1;
       this.no_items = []; 
     },
+    mostrar_rubrica_completa(rubrica){
+      console.log("rubrica a mostrar: ", rubrica);
+      this.cargar_data_rubrica(rubrica.id);
+      this.n_rub_visual = rubrica.nombre;
+      this.fullHeightRubrica2 = true;
+    },
     mostrar_rubrica(rub){
       this.control = 1;
-      //validar que no exista una rubrica en curso y mostrar mensaje antes de cargar la rubrica
-     /*  if(this.t_criterios.criterio.length > 0 && this.t_criterios.items.length > 0){
-        //console.log("entre a validacion");
-        this.alert4 = true;
-      }else{ */
-        //pendiente poner valores a v-model de la rubrica
+        //validacion de estado de la rubrica
+        if(rub.estado == "EVALUACION" || rub.estado == "EN USO"){
+          alert("No se puede editar Rúbrica en estado de evaluación");
+        }else{
         
-        this.n_rub = rub.nombre;
-        this.d_rub = rub.descripcion;
-        //this.d_rubrica = rub.descripcion;
-        var nombre_asig = '';
-         this.total_asig.forEach(element => {
-           if(element.idmateria == rub.asignatura){
-             nombre_asig = element.nombre;
-           }
-        });
-        this.s_asignatura = 
-          {
-            "docente": this.getCookie('TOKEN_3'),
-            "id_docente": this.getCookie('TOKEN_1'),
-            "nombre": nombre_asig,
-            "idmateria": rub.asignatura
-          };
-        
-        
-        this.id_rub_temp = rub.id;
-        //this.cargar_data_rubrica(rub.id)
-        //this.fullHeightRubrica = true;
+          this.n_rub = rub.nombre;
+          this.d_rub = rub.descripcion;
+          //this.d_rubrica = rub.descripcion;
+          var nombre_asig = '';
+          this.total_asig.forEach(element => {
+            if(element.idmateria == rub.asignatura){
+              nombre_asig = element.nombre;
+            }
+          });
+          this.s_asignatura = 
+            {
+              "docente": this.getCookie('TOKEN_3'),
+              "id_docente": this.getCookie('TOKEN_1'),
+              "nombre": nombre_asig,
+              "idmateria": rub.asignatura
+            };
+          
+          
+          this.id_rub_temp = rub.id;
+          //this.cargar_data_rubrica(rub.id)
+          //this.fullHeightRubrica = true;
 
-      //}
-  
+        //}
+        }
     },
     validacion_salir_edicion_rubrica(){
       if(this.t_criterios.criterio.length > 0 && this.t_criterios.items.length > 0){

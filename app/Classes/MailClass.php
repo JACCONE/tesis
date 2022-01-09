@@ -3,7 +3,7 @@ namespace App\Classes;
 
 class Mail{
 
-    public function sender($to, $body){
+    public function sender($to, $body,$subject){
 
         $mail = new \PHPMailer\PHPMailer\PHPMailer();
         $mail->CharSet = 'UTF-8';
@@ -16,7 +16,7 @@ class Mail{
         $mail->Username = "vectressplay@gmail.com";
         $mail->Password = "vvykmszejqpoamdu";
         $mail->SetFrom("vectressplay@gmail.com");
-        $mail->Subject = "INVITACIÓN A EVALUAR DISEÑO DE RÚBRICA";
+        $mail->Subject = $subject;
         $mail->Body = $body;
         $mail->IsHTML(true);
         $mail->AddAddress($to);

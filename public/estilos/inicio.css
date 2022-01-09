@@ -225,3 +225,32 @@
 #sel_periodo{
     font-size: 12px !important;
 }
+#criterios_c{
+    display: flex;
+    width: 67%;
+    flex-direction: column;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 10px;
+    max-height: 476px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+#valores_e{
+    display: flex;
+    width: 50%;
+    flex-direction: column;
+    padding-left: 6px;
+    border: 1px solid #cbcbcb;
+    padding-right: 6px;
+    padding-top: 10px;
+    height: 476px;
+    border-radius: 4px;
+}
+.estilo14{
+    margin-bottom: 3px;
+    display: flex;
+    flex-direction: column;
+    
+
+}

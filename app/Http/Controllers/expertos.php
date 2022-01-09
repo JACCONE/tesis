@@ -30,8 +30,9 @@ class expertos extends Controller{
         $response =[];
 
         $datos = json_decode($request->getContent(), true);
+        $datos["NOMBRE_RUBRICA"] = $this->getRubricaNombre($id_rubrica);
         $a = new test();
-        $resultado_envio = 1;// $a->prueba($to,$datos);
+        $resultado_envio = $a->prueba($to,$datos);
 
         if($resultado_envio == 1){
             $resinterno = $this->update_estado("INVITADO",$id_rubrica,$id_experto);
@@ -80,11 +81,28 @@ class expertos extends Controller{
         $pais = $request->get('pais');
         $anios = $request->get('anios');
         $email = $request->get('email');
-        $info = DB::connection('pgsql')->insert("INSERT INTO tesis.expertos(
-        nombres, apellidos, formacion_academica, cargo_actual, institucion, pais, anios_experiencia,email)
-        VALUES ('$nombre','$apellidos','$formacion','$cargo','$institucion','$pais','$anios','$email');");
+        $id_rubrica = $request->get('id_rubrica');
+        $estado = $request->get('estado');
 
-        return response()->json($info, 200);
+        $aux1 = DB::connection('pgsql')->select("SELECT count(*) as existe FROM tesis.expertos WHERE email = '$email'");
+        $existe = $aux1[0]->existe;
+
+        if($existe == 0){
+
+            $info = DB::connection('pgsql')->insert("INSERT INTO tesis.expertos(
+                nombres, apellidos, formacion_academica, cargo_actual, institucion, pais, anios_experiencia,email)
+                VALUES ('$nombre','$apellidos','$formacion','$cargo','$institucion','$pais','$anios','$email');");
+
+            $id_experto = $this->getexpertId(null);
+            return $this->set_new_evaluaciones($id_rubrica,$id_experto,$estado);
+
+        }else{
+
+            $id_experto2 = $this->getexpertId($email);
+            return $this->set_new_evaluaciones($id_rubrica,$id_experto2,$estado);
+
+        }
+        //return response()->json($info, 200);
     }
 
     public function set_evaluaciones(Request $request){
@@ -124,4 +142,75 @@ class expertos extends Controller{
         $info = DB::connection('pgsql')->update($sql);
         return response()->json($info, 200);
     }
+
+    /*14-12-2021*/
+    public function sendRubric(Request $request){
+        $nombre = $request->get('nombres');
+        $apellido = $request->get('apellidos');
+        $to = $request->get('to');
+        $idrubrica = $request->get('id_rubrica');
+        $idexperto = $request->get('id_experto');
+        $response = [];
+        $datos = json_decode($request->getContent(), true);
+        $a = new test();
+
+        $parts = explode("@", $to);
+        if ($parts[1] == 'utm.edu.ec') {
+            $clave = "Clave del SGA";
+        } else {
+            $aux1 = DB::connection('pgsql')->select("SELECT COUNT(*) as existe FROM tesis.expertos_temp_users WHERE usuario = '$to'");
+            $existe = $aux1[0]->existe;
+
+            if ($existe == 0) {
+                $clave = substr($nombre, 0, 3) . "_at" . date("dmY");
+                $this->insert_temp_user($to, $clave);
+            } else {
+                $aux2 = DB::connection('pgsql')->select("SELECT password as clave FROM tesis.expertos_temp_users WHERE usuario = '$to'");
+                $clave = $aux2[0]->clave;
+            }
+        }
+
+        $datos["USER"] = $to;
+        $datos["PASSWORD"] = $clave;
+        $datos["NOMBRE"] = $nombre . " " . $apellido;
+        $datos["NOMBRE_RUBRICA"] = $this->getRubricaNombre($idrubrica);
+        $resultado_envio = $a->sendRubric($to, $datos);
+
+        if ($resultado_envio == 1) {
+            $resinterno = $this->update_estado("EVALUANDO", $idrubrica, $idexperto);
+        }
+
+        array_push($response, $resinterno);
+        return $response;
+    }
+
+    public function insert_temp_user($user,$password){
+        $sql = "INSERT INTO tesis.expertos_temp_users(usuario,password,status) VALUES ('$user','$password',1);";
+        $info = DB::connection('pgsql')->insert($sql);
+        return response()->json($info, 200);
+    }
+
+    public function getRubricaNombre($id_rubrica){
+        $sql = "SELECT nombre FROM tesis.rubricas WHERE id = $id_rubrica";
+        $info = DB::connection('pgsql')->select($sql);
+        return $info[0]->nombre;
+    }
+
+    public function getexpertId($email){
+        if ($email == null) {
+            $id_exp = DB::connection('pgsql')->select("SELECT id FROM tesis.expertos xp order by id desc limit 1");
+            $id_experto = $id_exp[0]->id;
+            return $id_experto;
+        } else {
+            $id_exp2 = DB::connection('pgsql')->select("SELECT id FROM tesis.expertos WHERE email = '$email'");
+            $id_experto2 = $id_exp2[0]->id;
+            return $id_experto2;
+        }
+    }
+
+    public function set_new_evaluaciones($id_rubrica, $id_experto, $estado){
+        $info = DB::connection('pgsql')->insert("INSERT INTO tesis.evaluaciones(id_rubrica, id_experto, estado) VALUES ($id_rubrica, $id_experto, '$estado');");
+        return response()->json($info, 200);
+    }
+
 }
