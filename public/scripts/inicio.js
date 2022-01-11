@@ -138,7 +138,8 @@ const aut = new Vue({
   t_nivel_criterio_temp_v: '',
   confirm_1:false,
   confirm_2:false,
-  eva_observacion: ''
+  eva_observacion: '',
+  crit_4: false
   /* 
   asig_filtrado: [] */
   
@@ -1180,6 +1181,9 @@ validar que se tome en cuenta el status para usuarios externos en el inicio de s
             estado_d = "COMPLETADA";
           }else{
             estado_d = "EDICION";
+            console.log("antes de:");
+            this.crit_4= true;
+            console.log("despues de:");
           }
           
         }

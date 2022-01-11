@@ -344,3 +344,19 @@
     </q-card-actions>
   </q-card>
 </q-dialog>
+
+<q-dialog v-model="crit_4">
+  <q-card>
+    <q-card-section>
+      <div class="text-h6">Mensaje</div>
+    </q-card-section>
+
+    <q-card-section class="q-pt-none">
+      Para que la rúbirca se considere completa debe contener un mínimo de 4 criterios con un porcentaje global del 100%.
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="OK" color="primary" v-close-popup ></q-btn>
+    </q-card-actions>
+  </q-card>
+</q-dialog>
