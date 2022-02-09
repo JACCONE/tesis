@@ -34,10 +34,21 @@ class datos_principales extends Controller
         );
         return response()->json($info, 200);
     }
-    
-    public function get_periodos(){
+    public function get_rubricas_tarea($id_personal){
         $info = DB::connection('pgsql')->select(
-        "SELECT idperiodo, nombre FROM esq_periodos_academicos.periodo_academico where actual = 'S' AND idtipo_periodo in (1,4,9,8)"
+        "SELECT id, nombre
+        FROM tesis.rubricas 
+        where id_docente= '$id_personal'
+        and estado = 'EVALUADA'"
+        );
+        return response()->json($info, 200);
+    }
+    
+    public function get_periodo(){
+        $info = DB::connection('pgsql')->select(
+        "SELECT idperiodo, nombre
+        from esq_periodos_academicos.periodo_academico p 
+        where p.idtipo_periodo=1 and p.actual='S';"
         );
         return response()->json($info, 200);
 
@@ -52,26 +63,59 @@ class datos_principales extends Controller
     
     public function get_materias($id_periodo,$id_docente){
         $info = DB::connection('pgsql')->select(
-            "SELECT 
+            "SELECT d.id_materia,
             d.id_docente,
-            p.nombres || ' ' || p.apellido1 || '' || p.apellido2 AS docente,
-            d.id_materia,
-            m.nombre AS materia
+            m.nombre
             FROM (
                 SELECT
                     da.idpersonal AS id_docente,
-                    id.idmateria AS id_materia
+                    id.idmateria AS id_materia,
+                    da.idparalelo AS id_paralelo
                 FROM esq_inscripciones.inscripcion_detalle id
                 JOIN esq_distributivos.distribucion_academica da 
                     ON id.iddistributivo = da.iddistributivo 
                     AND id.idperiodo = $id_periodo
                     AND da.idpersonal = $id_docente
-                GROUP BY id.idmateria, da.idpersonal
+                GROUP BY id.idmateria, da.idpersonal,da.idparalelo
             ) AS d
             JOIN esq_mallas.materia m 
                 ON m.idmateria = d.id_materia
             JOIN esq_datos_personales.personal p 
-            ON p.idpersonal = d.id_docente"
+            ON p.idpersonal = d.id_docente
+            GROUP BY d.id_materia,
+            d.id_docente,m.nombre"
+            );
+            return response()->json($info, 200);
+
+    }
+    public function get_paralelos($id_periodo,$id_docente,$id_materia){
+        $info = DB::connection('pgsql')->select(
+            "SELECT pa.idparalelo, pa.nombre FROM
+            ( 
+                SELECT d.id_materia,
+                    d.id_paralelo AS id_paralelo
+                    FROM (
+                        SELECT
+                        da.idpersonal AS id_docente,
+                        id.idmateria AS id_materia,
+                        da.idparalelo AS id_paralelo
+                        FROM esq_inscripciones.inscripcion_detalle id
+                        JOIN esq_distributivos.distribucion_academica da 
+                        ON id.iddistributivo = da.iddistributivo 
+                        AND id.idperiodo = $id_periodo
+                        AND da.idpersonal = $id_docente
+                        AND id.idmateria = $id_materia
+                        GROUP BY id.idmateria, da.idpersonal,da.idparalelo
+                    ) AS d
+                JOIN esq_mallas.materia m 
+                    ON m.idmateria = d.id_materia
+                JOIN esq_datos_personales.personal p 
+                    ON p.idpersonal = d.id_docente
+                    GROUP BY d.id_materia,
+                    d.id_paralelo)AS e
+            JOIN esq_distributivos.paralelo pa
+            on pa.idparalelo = e.id_paralelo
+            GROUP BY pa.idparalelo , pa.nombre"
             );
             return response()->json($info, 200);
 

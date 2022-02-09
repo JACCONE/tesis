@@ -45,9 +45,7 @@ const aut = new Vue({
     id_rub_temp: '',
     s_periodo:'',
     s_asignatura:'',
-    campo_periodo :[{
-      "id": 1, "nombre" : 'periodo1'
-    }], // quemado por el momento, se debe llenar con una peticion
+    campo_periodo :[], // quemado por el momento, se debe llenar con una peticion
     campo_asignatura :[{
       "id":2, "nombre_a": 'Matemáticas'
     }],
@@ -139,10 +137,51 @@ const aut = new Vue({
   confirm_1:false,
   confirm_2:false,
   eva_observacion: '',
-  crit_4: false
+  crit_4: false,
   /* 
   asig_filtrado: [] */
-  
+  // para gestion de tareas docente
+  dense:false,
+        fixed: false,
+        maximizedToggle: true,
+        drawer: false,
+        //NUEVOS HACIA ABAJO
+        homeworks: [
+          {id_tarea: 1, materia: "BASE DE DATOS", nombre: "TAREA 1",fecha: "20/01/2022 16:00 - 20/02/2022 16:00",estado: "EN DESARROLLO"},
+          {id_tarea: 2, materia: "BASE DE DATOS", nombre: "TAREA 2",fecha: "20/01/2022 16:00 - 20/02/2022 16:00",estado: "EN DESARROLLO"},
+          {id_tarea: 3, materia: "BASE DE DATOS", nombre: "TAREA 3",fecha: "20/01/2022 16:00 - 20/02/2022 16:00",estado: "EN DESARROLLO"}],
+        each_tarea:false,
+        tarea_actual:'nueva tarea',
+        id_tarea_actual: 0,
+        tarea_nombre:'',
+        tarea_descripcion:'',
+        tarea_url:'',
+        tarea_inicio:'2019/02/01',
+        tarea_fin:'2019/02/01',
+        tarea_nota_maxima:'',
+        periodo_actual:'',
+        tarea_info:false,
+        materia_lista:'',
+        paralelo_lista:'',
+        materia_lista_options:[],
+        paralelo_lista_options:[],
+        periodo_dense:true,
+        id_tarea_temp: 0,
+        disable_periodo: true,
+        disable_paralelo:true,
+        control_nueva_tarea:0,
+        rubrica_tarea_options:[],
+        rubrica_tarea:'',
+        mensaje_tarea: false,
+        valor_asignaciones : false,
+        cantidad_tareas: 2,
+        mensaje_v : '',
+        maximo : 0,
+        estudiantes_lista: [],
+        validar_ciclo : 0,
+        array_ciclo: [],
+        tareas_estudiante : []
+
 
 //------------------------
 
@@ -170,9 +209,9 @@ const aut = new Vue({
         this.email = this.getCookie('TOKEN_4');
         //peticion para obtener periodos
             if(this.getCookie('TOKEN_2') != "EXTERNO"){  
-              axios.get('periodos')
+              axios.get('periodo')
               .then(response2 => {
-                console.log("periodos: ", response2.data);
+                console.log("periodos: ", response2.data[0].idperiodo);
                 this.campo_periodo = response2.data;
               })
             }
@@ -235,6 +274,285 @@ const aut = new Vue({
     },
   },
   methods: {
+    //metodos para gestion de tareas
+    sesion() {
+      console.log("A");
+    },
+
+    getHomeWorkInfo(id_tarea){
+        if(id_tarea == 0){
+          this.get_asignaturas();
+          this.get_rubricas_tareas();
+          this.periodo_actual = this.campo_periodo[0].nombre;
+          this.tarea_info = true;
+        }else{
+          this.id_tarea_actual = id_tarea;
+          console.log('id_tarea_actual: ', id_tarea);
+          this.periodo_actual = this.campo_periodo[0].nombre;
+          this.homeworks.forEach(tarea => {
+            if(tarea.id_tarea == id_tarea){
+              this.materia_lista = {'id_materia':tarea.id_asi, 'nombre': tarea.materia};
+              this.paralelo_lista = {'idparalelo':tarea.id_paralelo, 'nombre': tarea.paralelo};
+              this.tarea_nombre = tarea.nombre;
+              this.rubrica_tarea = {'id':tarea.id_rubrica, 'nombre':tarea.rubrica};
+              this.tarea_descripcion = tarea.descripcion;
+              this.tarea_nota_maxima = tarea.nota_maxima;
+              this.tarea_url = tarea.link;
+              this.tarea_inicio = tarea.fecha_inicio;
+              this.tarea_fin = tarea.fecha_fin;
+            }
+          });
+          this.get_asignaturas();
+          this.get_paralelos();
+          this.get_rubricas_tareas();
+        }
+        //this.tarea_actual = id_tarea;
+
+    },
+
+    save(){
+
+    },
+    asig_evaluaciones(){
+      const fecha = Date.now();
+      const hoy = new Date(fecha);
+      let fecha_fin = ''
+      this.homeworks.forEach(tareas => {
+        if(tareas.id_tarea == this.id_tarea_actual){
+          fecha_fin = tareas.fecha_fin;
+        }
+      });
+      let fecha_f = new Date(fecha_fin);
+      if(hoy > fecha_f){
+        this.valor_asignaciones = true;
+      }else{
+        this.mensaje_v = "Tarea activa para entregas, fecha final: "+fecha_fin;
+        this.mensaje_tarea = true;
+        
+      }
+    },
+    ditribuir_tareas(){
+      if(this.cantidad_tareas > this.maximo){
+        this.mensaje_v = "El máximo permitido es: "+this.maximo;
+        this.mensaje_tarea = true;
+      }else{
+        //algoritmo para asignar evaluaciones por pares
+        //Pendiente -- filtrar estudiantes que enviaron tareas//
+
+        //------
+        const estudiantes_id = [];
+        let estudiantes_add = [];
+        let contador = 1;
+        this.estudiantes_lista.forEach(lista => {
+          //array de estudiantes con asignaciones
+          estudiantes_add.push({'idpersonal':lista.idpersonal, 'asignaciones':[],'asignado': 0});
+          contador = contador + 1;
+        });
+        contador = 0;
+        const estudiantes_copia = this.estudiantes_lista;
+        console.log("estudiantes_add: ", estudiantes_add);
+        estudiantes_add.forEach(estud => {
+          let control = 0;
+          do {
+            let found = [];  
+              let control1= 0;
+              do{
+                let num = this.getRandomInt(0,estudiantes_copia.length);
+                if(estud.idpersonal != estudiantes_add[num].idpersonal && 
+                  estudiantes_add[num].asignado < this.cantidad_tareas &&
+                  this.asignado_estudiante(estud,estudiantes_add[num]) == 0
+                  ){
+                  control1 = 1;
+                  found = estudiantes_add[num];
+                  estudiantes_add[num].asignado = estudiantes_add[num].asignado + 1;
+                  
+                }
+                
+                this.array_ciclo.forEach(ciclo => {
+                  if(ciclo.idpersonal == estudiantes_add[num].idpersonal && ciclo.cantidad > 2){
+                    control1 = 1;
+                    this.array_ciclo = [];
+                  }
+                  
+                });
+
+              
+              }while(control1 == 0);
+              //.find(element => element.posicion == num);
+              console.log("found: ", found);
+              estud.asignaciones.push(found.idpersonal);
+              control = control + 1;
+          } while (control < this.cantidad_tareas);
+          /*for (let i = 0; i  < this.cantidad_tareas; i++) {
+            const found = estudiantes_id.find(element => element.posicion = num);
+            console.log("encontrado ", found);  
+          }*/
+        });
+
+
+        console.log("final: ", estudiantes_add);
+        
+      }
+    },
+    asignado_estudiante(estudiante, estudiante_asignar){
+      let control = 0;
+      estudiante.asignaciones.forEach(asig => {
+        console.log("asig: ", asig, " asignar: ",  estudiante_asignar.idpersonal)
+        if(asig == estudiante_asignar.idpersonal){
+          if(this.array_ciclo.length == 0){
+            this.array_ciclo.push({'idpersonal': estudiante_asignar.idpersonal, 'cantidad':1});
+          }else{
+            for(var i = 0; i<this.array_ciclo.length; i++){
+              if(this.array_ciclo[i].idpersonal == estudiante_asignar.idpersonal){
+                this.array_ciclo[i].cantidad = this.array_ciclo[i].cantidad + 1;
+              }else{
+                this.array_ciclo.push({'idpersonal': estudiante_asignar.idpersonal, 'cantidad':1});
+              }
+            }
+          }
+          control = 1;
+        }
+      });
+      console.log("control ", control);
+      return control;
+    },
+    getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min)) + min;
+    },
+    estado_tarea(id_tarea){
+      this.id_tarea_actual = id_tarea;
+      let array = {};
+      this.homeworks.forEach(tareas => {
+        if(tareas.id_tarea == id_tarea){
+          array = {
+            'id_periodo': this.campo_periodo[0].idperiodo,
+            'id_docente': this.getCookie('TOKEN_1'),
+            'id_materia': tareas.id_asi,
+            'id_paralelo': tareas.id_paralelo
+          }
+        }
+      });
+      axios.post('estudiante_paralelo',array)
+      .then(estudiantes =>{
+        console.log("estudiantes: ", estudiantes.data);
+        this.estudiantes_lista = estudiantes.data;
+        this.maximo = this.estudiantes_lista.length;
+      });
+      this.each_tarea = true;
+    },
+    obtener_paralelos(){
+      this.paralelo_lista = '';
+      this.get_paralelos();
+    },
+    get_paralelos(){
+      axios.get('paralelos/'+this.campo_periodo[0].idperiodo+'/'+this.getCookie('TOKEN_1')+'/'+this.materia_lista.id_materia)
+      .then(paralelo =>{
+        console.log("paralelos recibidos: ", paralelo.data);
+        this.disable_paralelo = false;
+        this.paralelo_lista_options = paralelo.data;
+      });
+    },
+    get_rubricas_tareas(){
+      axios.get('rubricas_tarea/'+this.getCookie('TOKEN_1'))
+      .then(rub_tarea => {
+        console.log("rurbicas tarea: ", rub_tarea.data);
+        this.rubrica_tarea_options = rub_tarea.data;
+      });
+    },
+    actualizar_tareas_envio(){
+      //caso de nueva tarea
+      if(this.id_tarea_temp == 0){
+        //validacion campos llenos
+        console.log("periodo: ", this.campo_periodo[0].idperiodo);
+        console.log("materia: ", this.materia_lista);
+        console.log("paralelo: ", this.paralelo_lista);
+        console.log("nombre_tarea: ", this.tarea_nombre);
+        console.log("rurbica tarea: ", this.rubrica_tarea);
+        console.log("descricion tarea: ", this.tarea_descripcion);
+        console.log("nota maxima: ", this.tarea_nota_maxima);
+        let fecha_i = new Date(this.tarea_inicio);
+        let fecha_f = new Date(this.tarea_fin);
+        console.log("fecha inicio: ", this.tarea_inicio, ' :', fecha_i);
+        console.log("fecha fin: ", this.tarea_fin, ' :', fecha_f);
+        
+        if(this.materia_lista != '' && this.paralelo_lista != ''
+        && this.tarea_nombre != '' && this.rubrica_tarea != ''
+        && this.tarea_descripcion != '' && this.tarea_nota_maxima != ''
+        && this.tarea_inicio != '' && this.tarea_fin != ''){
+          if(fecha_i >= fecha_f){
+            console.log("la fecha inicial es menor");
+            this.mensaje_v = "La fecha final debe ser mayor a la incial";
+            this.mensaje_tarea = true;
+          }else{
+            console.log("aqui se guarda");
+            const tarea = {
+              'id' : this.id_tarea_actual, 
+              'id_docente': this.getCookie('TOKEN_1'),
+              'id_periodo': this.campo_periodo[0].idperiodo,
+              'id_asignatura': this.materia_lista.id_materia,
+              'paralelo': this.paralelo_lista.idparalelo,
+              'id_rubrica': this.rubrica_tarea.id,
+              'nombre': this.tarea_nombre,
+              'descripcion': this.tarea_descripcion,
+              'nota_maxima': this.tarea_nota_maxima,
+              'fecha_inicio': this.tarea_inicio,
+              'fecha_fin': this.tarea_fin,
+              'link': this.tarea_url,
+              'estado': 'EN DESARROLLO'
+            };
+            axios.post('update_tarea',tarea)
+            .then(tarea_act => {
+              console.log("actualizacion tarea ", tarea_act.data);
+              //vaciar modal
+              this.limpiar_tarea();
+              //recargar tareas
+              this.get_tareas_docente();
+              //cerrar modal
+              this.tarea_info = false;
+              this.id_tarea_actual = 0;
+            });
+          }
+          
+          //array para guardar tarea nueva          
+        }else{
+          this.mensaje_v = "Faltan llenar campos obligatorios para guardar la tarea"
+          this.mensaje_tarea = true;
+          
+        }
+
+      }
+    },
+    get_tareas_docente(){
+      axios.get('get_tareas_docente/'+this.getCookie('TOKEN_1'))
+      .then(tar_rec => {
+        console.log("tareas_recibidas: ", tar_rec.data);
+        this.homeworks = tar_rec.data;
+      });
+    },
+    limpiar_tarea(){
+      this.materia_lista = '';
+      this.paralelo_lista = '';
+      this.tarea_nombre = '';
+      this.rubrica_tarea = '';
+      this.tarea_descripcion = '';
+      this.tarea_url = '';
+      this.tarea_nota_maxima = '';
+      disable_paralelo= true;
+      this.id_tarea_actual = 0;
+    },
+
+    get_tareas_estudiante(){
+      let array_tar = {
+        'periodo': this.campo_periodo[0].idperiodo,
+        'estudiante': +this.getCookie('TOKEN_1')
+      };
+      console.log("array enviado: ", array_tar);
+      axios.post("estudiante_tareas",array_tar)
+      .then(tar_estu => {
+        console.log("tareas_recibidas estudiante: ", tar_estu.data);
+        this.tareas_estudiante = tar_estu.data;
+      });
+    },
     //metodos para evaluar rubrica
     salir_visual_texto(){
       this.persistent2_v = false, 
@@ -608,43 +926,7 @@ const aut = new Vue({
             this.clearExpertosForm();
         });
       },
-     /*  set_expertos(){
-        let experto = {
-          "nombres":this.experto_nombres,
-          "apellidos":this.experto_apellidos,
-          "formacion":this.experto_formacion,
-          "cargo":this.experto_cargo,
-          "institucion":this.experto_institucion,
-          "pais":this.experto_pais,
-          "anios":this.experto_anios,
-          "email":this.experto_email
-        }; */
-/* VALIDACION DE SI EXISTE CON EL CORREO o si ya esta en uso
-mensaje que diga que seleccion del combo de expertos ya ingresados sea externo o interno
-validacion desde el controlador si existe
-validacion de cuando seleccione del combo de ya ingresados no permita edicion 
-validar el envio del correo si es interno (docente, estudiantes @utm) no generar usuario y contraseñas
-*/
-
-/*
-PARA VALIDACION DE ESTADO EVALUADA HACERLO EN PHP con varias consultas...
-validar que se tome en cuenta el status para usuarios externos en el inicio de sesion
-*/ 
-   /*      axios
-        .post('expertos/insertar',experto)
-        .then(response30 => {
-          let evaluaciones = {
-            "id_rubrica":this.id_rubrica_actual,
-            "estado":"AGREGADO"
-          };
-          axios
-          .post('evaluaciones',evaluaciones)
-          .then(response31 => {
-            this.get_expertos(this.id_rubrica_actual);
-            this.clearExpertosForm();
-          })
-        });
-      }, */
+    
 
 
 
@@ -686,6 +968,18 @@ validar que se tome en cuenta el status para usuarios externos en el inicio de s
         case 'rub_eval': 
           this.get_rubricas_expertos();
           break;
+        case 'eva_estudiante':
+          
+          break;
+        case 'homework':
+          this.get_tareas_docente();
+
+          break;
+        case 'homework_e':
+          this.get_tareas_estudiante();
+          console.log("taareas pendientes a realizar");
+
+          break;
         default:
       }
     },
@@ -721,7 +1015,7 @@ validar que se tome en cuenta el status para usuarios externos en el inicio de s
     get_asignaturas(){//peticion para materias de docente segun periodo
       console.log("idpersonal: ", this.getCookie('TOKEN_1'));
       console.log("id_periodo: ", this.s_periodo.idperiodo);
-       axios.get('materias/'+this.s_periodo.idperiodo+'/'+this.getCookie('TOKEN_1'))
+       axios.get('materias/'+this.campo_periodo[0].idperiodo+'/'+this.getCookie('TOKEN_1'))
         .then(response3 => {
           console.log("asignaturas: ", response3.data);
           this.campo_asignatura = response3.data;

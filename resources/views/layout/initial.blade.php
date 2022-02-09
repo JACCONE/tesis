@@ -78,6 +78,9 @@
                 <q-page>
                     <div id="rubrica_interface" class="interface" style="display: none;">@include('layout.rubrica')</div>
                     <div id="rub_eval_interface" class="interface" style="display: none;">@include('layout.rub_eval')</div>
+                    <div id="eva_estudiante_interface" class="interface" style="display: none;">@include('layout.eva_estudiante')</div>
+                    <div id="homework_interface" class="interface" style="display: none;">@include('layout.homework')</div>
+                    <div id="homework_e_interface" class="interface" style="display: none;">@include('layout.homework_e')</div>
 
                 </q-page>
             </q-page-container>

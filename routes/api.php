@@ -13,6 +13,7 @@ use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\RubricaController;
 use App\Http\Controllers\AsignaturasController;
 use App\Http\Controllers\evaluaciones;
+use App\Http\Controllers\tareasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,11 +80,16 @@ Route::delete('experto/delete/{id_experto}',[expertos::class,'deleteExperto'])->
 Route::post('experto/sendRubric',[expertos::class,'sendRubric'])->name('test.sendRubric');
 Route::post('experto/getRubricaNombre/{id_rubrica}',[expertos::class,'getRubricaNombre'])->name('test.getRubricaNombre');
 //para periodos
-Route::get('periodos',[datos_principales::class,'get_periodos'])->name('periodos.get_periodos');
+Route::get('periodo',[datos_principales::class,'get_periodo'])->name('periodos.get_periodos');
 
 //para materias
 Route::get('materias/{id_periodo}/{id_docente}',[datos_principales::class,'get_materias'])->name('materias.get_materias');
+Route::get('paralelos/{id_periodo}/{id_docente}/{id_materia}',[datos_principales::class,'get_paralelos'])->name('paralelos.get_paralelos');
 Route::get('asignaturas',[datos_principales::class,'get_asignaturas'])->name('asignaturas.get_asignaturas');
+Route::get('rubricas_tarea/{id_docente}',[datos_principales::class,'get_rubricas_tarea'])->name('rubricas_tarea.get_rubricas_tarea');
+
+
+
 
 //para asignaturas
 Route::put('asignatura',[AsignaturasController::class,'update_asignatura'])->name('asignaturas.update_asignatura');
@@ -96,4 +102,10 @@ Route::post('obtener/evaluacion',[evaluaciones::class,'get_evaluacion'])->name('
 
 Route::put('rubrica/estado',[RubricaController::class,'update_estado'])->name('rurbica_estado.update_estado');
 Route::post('finalizar/evaluacion',[evaluaciones::class,'finalizar_evaluacion'])->name('finalizar_evaluacion.finalizar_evaluacion');
+
+//para tareas
+Route::post('update_tarea',[tareasController::class,'update_tareas'])->name('update_tarea.update_tareas');
+Route::get('get_tareas_docente/{id_docente}',[tareasController::class,'get_tareas'])->name('get_tareas_docente.get_tareas');
+Route::post('estudiante_paralelo',[tareasController::class,'get_estudiantes_paralelo'])->name('estudiante_paralelo.get_estudiantes_paralelo');
+Route::post('estudiante_tareas',[tareasController::class,'get_tareas_estudiantes'])->name('estudiante_tareas.get_tareas_estudiantes');
 
