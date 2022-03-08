@@ -1,5 +1,6 @@
 
-<div id="aut" style="height: 100%;">
+<div id="aut" style="height: 100%;"> 
+<div id="principal_h">
 <template>
   <div style="height: 67px;
   cursor: pointer;
@@ -31,7 +32,7 @@
                       <q-item-section @click="tarea_info = true, getHomeWorkInfo(rub.id_tarea)">Editar Información</q-item-section>
                     </q-item>
                     <q-item clickable v-close-popup>
-                      <q-item-section @click="estado_tarea(rub.id_tarea)" >Proceso de tarea</q-item-section>
+                      <q-item-section @click="estado_tarea(rub.id_tarea,rub.id_asi)" >Proceso de tarea</q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -40,23 +41,109 @@
         </div>
     </template>
 
-<!--MODAL DE EXPERTOS-->
+<!--MODAL DE GESTOR DE TAREA DE DOCENTE-->
 <q-dialog v-model="each_tarea" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
 <q-card class="column full-height">
     <q-card-section>
         <div class="text-h6">Gestor de @{{tarea_actual}}</div>
     </q-card-section>
-    <q-separator></q-separator>
     <q-card-section class="col q-pt-none scroll">
-      <div style="cursor: pointer; border: 1px solid black;" @click= "asig_evaluaciones">ASIGNAR EVALUACIONES</div>
+      <div class="q-pa-md">
+        <div  class="evaluar" @click = "asig_evaluaciones" id="asignar">
+           Asignar Evaluaciones
+        </div>
+        <table style="width: 100%; padding:23px; display: none;" id="tbl_1">
+          <thead style="height: 50px;">
+            <tr>
+              <th class="cabecera" style="width: 30%">ESTUDIANTE</th>
+              <th class="cabecera" style="width: 22%">CORREO</th>
+              <th class="cabecera" style="width: 13%">ESTADO</th>
+              <th class="cabecera" style="width: 15%">FECHA ENVÍO</th>
+              <th class="cabecera" style="width: 6%;">LINK</th>
+            </tr>
+          </thead>  
+          <tbody>
+            <tr v-for="(estu, index) in estudiantes_lista" :key="index" style="height: 45px">
+              <td>@{{estu.estudiante}}</td>
+              <td>@{{estu.correo}}</td>
+              <td>@{{estu.estado}}</td>
+              <td>@{{estu.fecha_envio}}</td>
+              <td> <q-btn v-if = "estu.link_envio != ''"
+                round
+                color="primary"
+                size="sm" 
+                icon="link"
+                @click = "abrir_link_envio(estu.link_envio)"
+              /></td>
+            </tr>
+          </tbody>        
+        </table>
+        <table id="tbl_2"  style="width: 100%; padding:23px; display: none;">
+          <thead style="height: 50px;">
+            <tr>
+              <th class="cabecera" style="width: 30%">ESTUDIANTE</th>
+              <th class="cabecera" style="width: 22%">CORREO</th>
+              <th class="cabecera" style="width: 15%">FECHA ENVÍO</th>
+              <th class="cabecera" style="width: 6%;">LINK</th>
+            </tr>
+          </thead>  
+          <tbody>
+            <tr v-for="(estu2, index) in estudiantes_entrega" :key="index" style="height: 45px">
+              <td>@{{estu2.estudiante}}</td>
+              <td>@{{estu2.correo}}</td>
+              <td>@{{estu2.fecha_envio}}</td>
+              <td> <q-btn v-if = "estu2.link_envio != ''"
+                round
+                color="primary"
+                size="sm" 
+                icon="link"
+                @click = "abrir_link_envio(estu2.link_envio)"
+              /></td>
+            </tr>
+          </tbody>
+        </table>
+        <table id="tbl_3" style="width: 100%; padding:23px; display: none;">
+          <thead style="height: 50px;">
+            <tr>
+              <th class="cabecera" style="width: 25%">ESTUDIANTE</th>
+              <th class="cabecera" style="width: 10%">FECHA ENVÍO</th>
+              <th class="cabecera" style="width: 6%;">LINK</th>
+              <th class="cabecera" style="width: 30%">EVALUACIONES</th>
+            </tr>
+          </thead>  
+          <tbody>
+            <tr v-for="(eva, index) in estudiantes_evaluar" :key="index" style="height: 45px">
+              <td>@{{eva.estudiante}}</td>
+              <td>@{{eva.fecha_envio}}</td>
+              <td> <q-btn v-if = "eva.link_envio != ''"
+                round
+                color="primary"
+                size="sm" 
+                icon="link"
+                @click = "abrir_link_envio(eva.link_envio)"
+              /></td>
+              <td class="flex column">
+                <div v-for="asignados in eva.asignados" style="display: flex;">
+                  <div style="width: 60%; display:flex; align-items:center;">@{{asignados.nombre}}</div>
+                  <div style="width: 20%; display:flex; align-items:center;">@{{asignados.porcentaje}}%</div>
+                  <div style="width: 20%; display:flex; align-items:center;">@{{asignados.nota}}</div>
+                  
+                </div>
+               {{--  <div v-for="(asig, index) in eva.asignados"></div>
+                    <div>@{{asig.nombre}}</div>
+              </td> --}}
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </q-card-section>
     <q-separator></q-separator>
     <q-card-actions align="right">
-        <q-btn flat label="SALIR" color="green-9" v-close-popup></q-btn>
+        <q-btn flat label="SALIR" color="green-9" @click="limpiar_array_estudiantes"></q-btn>
     </q-card-actions>
 </q-card>
 </q-dialog>
-<!--MODAL DE EXPERTOS-->
+<!-- ------------ -->
 
 
 <q-dialog v-model="tarea_info" persistent>
@@ -113,7 +200,7 @@
                   <q-input type="number" class="col-2" outlined v-model="tarea_nota_maxima" label="Calificación máxima" :dense="dense" style="padding: 3px;"></q-input>
                   
                   
-                <div class="col" style="display: flex;justify-content: center;align-items: center;">
+            <div class="col" style="display: flex;justify-content: center;align-items: center;">
               <div style="padding-right: 10px;">Fecha Inicio</div>
                 <q-input filled v-model="tarea_inicio">
                   <template v-slot:prepend>
@@ -206,19 +293,57 @@
     </q-card-section>
 
     <q-card-section class="q-pt-none">
-     <div>Treas/Estudiantes</div>
-     <q-input class="col" outlined v-model="cantidad_tareas" 
-     :dense="dense" style="padding: 3px;"
-     type="number" 
-     min = 2></q-input>
+  <div>
+   <div style="margin-bottom: 10px;">
+      <div>
+        <q-input class="col" outlined v-model="cantidad_tareas" 
+        :dense="dense" style="padding: 3px;"
+        type="number" 
+        min = 2
+        label = "cantidad"></q-input>
+      </div>
+    </div>
+    <div>
+      <div>
+        <q-input filled v-model="eval_fin" label="Fecha fin">
+          <template v-slot:prepend>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-date v-model="eval_fin" mask="YYYY-MM-DD HH:mm">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-date>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+
+          <template v-slot:append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-time v-model="eval_fin" mask="YYYY-MM-DD HH:mm" format24h>
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+      </div>
+      </div>
+    </div>
 
     </q-card-section>
 
     <q-card-actions align="right">
-      <q-btn flat label="OK" color="primary" @click="ditribuir_tareas" ></q-btn>
+      <q-btn flat label="Asignar" color="primary" @click="ditribuir_tareas" ></q-btn>
     </q-card-actions>
   </q-card>
 </q-dialog>
-
 </div>
+<div id="log" class="loading" style="display: none">
+  <div class="loader"></div> 
+</div>
+</div> 
 

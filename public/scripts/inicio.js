@@ -1,4 +1,5 @@
 const aut = new Vue({
+  
   el: '#aut',
   data: {
     user:'', //v-model
@@ -177,10 +178,42 @@ const aut = new Vue({
         cantidad_tareas: 2,
         mensaje_v : '',
         maximo : 0,
+        estudiantes_add:[],
         estudiantes_lista: [],
+        estudiantes_entrega:[],
+        estudiantes_evaluar:[],
         validar_ciclo : 0,
         array_ciclo: [],
-        tareas_estudiante : []
+        tareas_estudiante : [],
+        materias_estudiante: [],
+        tarea_estudiante_info: false,
+        tarea_descripcion_e:'',
+        tarea_url_e:'',
+        fecha_fin_e:'',
+        tarea_url_e:'',
+        adjunto_e: '',
+        disable_entrega:true,
+        id_tarea_temp_e: 0,
+        asignatura_actual_temp: 0,
+          /* ambiente: null,
+          ambientes: [],
+          usuarios: [],
+          resultado: [],
+          columnas: [
+              { name: 'estudiante', label: 'ESTUDIANTE', field: 'estudiante' },
+              { name: 'correo', label: 'CORREO', field: 'correo' },
+              { name: 'estado', label: 'ESTADO', field: 'estado' },
+              { name: 'fecha', label: 'FECHA ENVÍO', field: 'fecha_envio' },
+              { name: 'link', label: 'LINK', field: 'link_envio' }
+              
+          ], */
+          c_eval_pares:0,
+          eval_fin:''
+
+      
+        
+    
+
 
 
 //------------------------
@@ -274,10 +307,7 @@ const aut = new Vue({
     },
   },
   methods: {
-    //metodos para gestion de tareas
-    sesion() {
-      console.log("A");
-    },
+    //metodos adicionale
 
     getHomeWorkInfo(id_tarea){
         if(id_tarea == 0){
@@ -314,73 +344,80 @@ const aut = new Vue({
 
     },
     asig_evaluaciones(){
-      const fecha = Date.now();
-      const hoy = new Date(fecha);
-      let fecha_fin = ''
-      this.homeworks.forEach(tareas => {
-        if(tareas.id_tarea == this.id_tarea_actual){
-          fecha_fin = tareas.fecha_fin;
+      //validar que no tenga la asignacion realizada
+      console.log("estado asignacion: ", this.c_eval_pares);
+      if(this.c_eval_pares == 0){
+        const fecha = Date.now();
+        const hoy = new Date(fecha);
+        let fecha_fin = ''
+        this.homeworks.forEach(tareas => {
+          if(tareas.id_tarea == this.id_tarea_actual){
+            fecha_fin = tareas.fecha_fin;
+          }
+        });
+        let fecha_f = new Date(fecha_fin);
+        if(hoy > fecha_f){
+          this.valor_asignaciones = true;
+        }else{
+          this.mensaje_v = "Tarea activa para entregas, fecha final: "+fecha_fin;
+          this.mensaje_tarea = true;
         }
-      });
-      let fecha_f = new Date(fecha_fin);
-      if(hoy > fecha_f){
-        this.valor_asignaciones = true;
       }else{
-        this.mensaje_v = "Tarea activa para entregas, fecha final: "+fecha_fin;
+        this.mensaje_v = "La asignación ya se encuantra realizada";
         this.mensaje_tarea = true;
-        
       }
+      
     },
     ditribuir_tareas(){
       if(this.cantidad_tareas > this.maximo){
         this.mensaje_v = "El máximo permitido es: "+this.maximo;
         this.mensaje_tarea = true;
       }else{
-        //algoritmo para asignar evaluaciones por pares
-        //Pendiente -- filtrar estudiantes que enviaron tareas//
-
+        if(this.eval_fin.trim()== ""){
+          this.mensaje_v = "Sleccione fecha fin para ejecutar evaluaciones";
+          this.mensaje_tarea = true;
+        }else{
+          //
+          //algoritmo para asignar evaluaciones por pares
         //------
         const estudiantes_id = [];
-        let estudiantes_add = [];
+        this.estudiantes_add = [];
         let contador = 1;
-        this.estudiantes_lista.forEach(lista => {
+        this.estudiantes_entrega.forEach(lista => {
           //array de estudiantes con asignaciones
-          estudiantes_add.push({'idpersonal':lista.idpersonal, 'asignaciones':[],'asignado': 0});
+          this.estudiantes_add.push({'idpersonal':lista.idpersonal,/*  'nombre':lista.estudiante, */'asignaciones':[],'asignado': 0});
           contador = contador + 1;
         });
         contador = 0;
-        const estudiantes_copia = this.estudiantes_lista;
-        console.log("estudiantes_add: ", estudiantes_add);
-        estudiantes_add.forEach(estud => {
+        const estudiantes_copia = this.estudiantes_entrega;
+        //console.log("estudiantes_add: ", this.estudiantes_add);
+        this.estudiantes_add.forEach(estud => {
           let control = 0;
           do {
             let found = [];  
               let control1= 0;
               do{
                 let num = this.getRandomInt(0,estudiantes_copia.length);
-                if(estud.idpersonal != estudiantes_add[num].idpersonal && 
-                  estudiantes_add[num].asignado < this.cantidad_tareas &&
-                  this.asignado_estudiante(estud,estudiantes_add[num]) == 0
+                if(estud.idpersonal != this.estudiantes_add[num].idpersonal && 
+                  this.estudiantes_add[num].asignado < this.cantidad_tareas &&
+                  this.asignado_estudiante(estud,this.estudiantes_add[num]) == 0
                   ){
                   control1 = 1;
-                  found = estudiantes_add[num];
-                  estudiantes_add[num].asignado = estudiantes_add[num].asignado + 1;
+                  found = this.estudiantes_add[num];
+                  this.estudiantes_add[num].asignado = this.estudiantes_add[num].asignado + 1;
                   
                 }
                 
                 this.array_ciclo.forEach(ciclo => {
-                  if(ciclo.idpersonal == estudiantes_add[num].idpersonal && ciclo.cantidad > 2){
+                  if(ciclo.idpersonal == this.estudiantes_add[num].idpersonal && ciclo.cantidad > 2){
                     control1 = 1;
                     this.array_ciclo = [];
                   }
-                  
                 });
-
-              
               }while(control1 == 0);
               //.find(element => element.posicion == num);
-              console.log("found: ", found);
-              estud.asignaciones.push(found.idpersonal);
+              //console.log("found: ", found);
+              estud.asignaciones.push(/* [ */found.idpersonal/* ,found.nombre] */);
               control = control + 1;
           } while (control < this.cantidad_tareas);
           /*for (let i = 0; i  < this.cantidad_tareas; i++) {
@@ -388,11 +425,103 @@ const aut = new Vue({
             console.log("encontrado ", found);  
           }*/
         });
+          //console.log("final: ", this.estudiantes_add);
+          //armar array para tbl 3 primera asignacion de evaluacion
+          this.estudiantes_entrega.forEach(entrega => {
+            let temp = {
+              'idpersonal': entrega.idpersonal,
+              'estudiante': entrega.estudiante,
+              'correo': entrega.correo,
+              'link_envio': entrega.link_envio,
+              'fecha_envio': entrega.fecha_envio,
+              'asignados':[]
+            }
+            //let control = 0;
+            this.estudiantes_add.forEach(add => {
+              
+              if(entrega.idpersonal == add.idpersonal){
+                //console.log("aqui: ", add);
+                for(var i = 0; i<add.asignaciones.length; i++){
+                  console.log("ultima: ", add.asignaciones[i]);
+                  if(add.asignaciones[i] != undefined){
+                    console.log("indefinido aqui");
+                    let temp_nombre = '';
+                    for (let j = 0; j < this.estudiantes_entrega.length; j++) {
+                      if(this.estudiantes_entrega[j].idpersonal == add.asignaciones[i]){
+                        temp_nombre = this.estudiantes_entrega[j].estudiante;
+                        j = this.estudiantes_entrega.length;
+                      }   
+                    };
+                    let temp2 = {
+                      'nombre': temp_nombre,
+                      'porcentaje': '--',
+                      'nota': '--',
+                    }
+                    temp.asignados.push(temp2);
+                  }
+                  
+                }
+                
+              }
+            });
+            this.estudiantes_evaluar.push(temp);
+            
+          });
+          console.log("estudiantes evaluar: ", this.estudiantes_evaluar)
+          document.getElementById("tbl_3").style.display = null;
+          document.getElementById("tbl_2").style.display = 'none';
+          document.getElementById("tbl_1").style.display = 'none';
+          //guardar asignaciones
+          let con = {
+            'docente': this.getCookie('TOKEN_1'),
+            'tarea': this.id_tarea_actual,
+            'fecha': this.eval_fin
+          }
+          axios.put('tarea_control',con)
+          .then(respuesta => {
+            console.log("id_control: ",respuesta.data);
+            let id_asig = respuesta.data;
+            let array_e = [];
+            this.estudiantes_add.forEach(estu => {
+              for(var i = 0; i<estu.asignaciones.length; i++){
+                if(estu.asignaciones[i]== undefined){
+                  console.log("indefinido");
+                }else{
+                  let temp = {
+                    'id_asignacion': id_asig,
+                    'id_estudiante': estu.idpersonal,
+                    'id_asignado': estu.asignaciones[i]
+                  }
+                  array_e.push(temp);
+                }
+                
+              }
+            });
+            console.log("array a almacenar: ", array_e);
+            //peticion a almacenar las asignaciones
+            axios.put('tarea_asignaciones',array_e)
+            .then(asig =>{
+              console.log("asignaciones almacenadas:", asig.data );
+              document.getElementById("asignar").style.display = "none";
 
+            })
+          });
 
-        console.log("final: ", estudiantes_add);
+          this.valor_asignaciones = false;
+
+        }
+        
         
       }
+    },
+    limpiar_array_estudiantes(){
+      //limpiar arrays de estudiantes
+      this.c_eval_pares = 0;
+      this.estudiantes_add = [];
+      this.estudiantes_lista = [],
+      this.estudiantes_entrega = [],
+      this.estudiantes_evaluar = [],
+      this.each_tarea = false;
     },
     asignado_estudiante(estudiante, estudiante_asignar){
       let control = 0;
@@ -419,26 +548,121 @@ const aut = new Vue({
     getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min)) + min;
     },
-    estado_tarea(id_tarea){
+    estado_tarea(id_tarea,id_asigna){
+      //this.showLoading();
+       console.log("cargando: ", document.getElementById("log"));
+       document.getElementById("log").style.display = null;
+       document.getElementById("principal_h").style.display = "none";
+       console.log("principal: ", document.getElementById("principal_h"));
+      /*document.getElementById("log").style.display = null; */
+      const fecha = Date.now();
+      const hoy = new Date(fecha);
+      let fecha_f = '';
+
       this.id_tarea_actual = id_tarea;
       let array = {};
+      let array2 = {};
       this.homeworks.forEach(tareas => {
         if(tareas.id_tarea == id_tarea){
+          let _f = tareas.fecha_fin
+          fecha_f = new Date(_f);
           array = {
             'id_periodo': this.campo_periodo[0].idperiodo,
             'id_docente': this.getCookie('TOKEN_1'),
             'id_materia': tareas.id_asi,
-            'id_paralelo': tareas.id_paralelo
+            'id_paralelo': tareas.id_paralelo,
+            'id_tarea': tareas.id_tarea
+          };
+          array2 = {
+            'docente': this.getCookie('TOKEN_1'),
+            'tarea': tareas.id_tarea
           }
         }
       });
-      axios.post('estudiante_paralelo',array)
+     
+    axios.post('estudiante_paralelo',array)
       .then(estudiantes =>{
         console.log("estudiantes: ", estudiantes.data);
         this.estudiantes_lista = estudiantes.data;
+        this.estudiantes_entrega = this.estudiantes_lista.filter(x => x.estado == "ENVIADA");
+        console.log("estudiantes enviados: ", this.estudiantes_entrega);
         this.maximo = this.estudiantes_lista.length;
-      });
-      this.each_tarea = true;
+        // peticion para obtener el estado de la asignacion de la evaluacion por pares
+        
+        axios.post('estado_evaluacion',array2)
+        .then(est => {
+              console.log("estado de la tarea: ", est.data);
+              this.c_eval_pares = est.data;
+             // console.log("hoy: ", fecha, " fecha_f: ", fecha_f);
+            if(fecha_f <= fecha){
+              document.getElementById("tbl_1").style.display = "none";
+              if(this.c_eval_pares == 0){
+                //caso no asignado evaluacion por pares
+                document.getElementById("asignar").style.display = null;
+                document.getElementById("tbl_2").style.display = null;
+                document.getElementById("tbl_3").style.display = 'none';
+              }else{
+                //caso asignado evaluacion por pares
+                //validar inahabilitar btn de asignacion de evaluacion
+                console.log(document.getElementById("asignar"));
+                document.getElementById("asignar").style.display = "none";
+                //peticiones para traer datos
+                axios.get('get_asignaciones/'+this.id_tarea_actual)
+                .then(actual =>{
+                  console.log("general: ",actual.data)
+                  let general = actual.data;
+
+                  axios.get('get_asignaciones_tarea/'+this.id_tarea_actual)
+                .then(asigna =>{
+                  console.log("Asignaciones: ", asigna.data);
+                  let asignaciones = asigna.data; 
+                  let asignados_1 = [];
+                  for (let i = 0; i < general.length; i++) {
+                    let temp1 =
+                      {
+                        "id_estudiante": general[i].idpersonal,
+                        'estudiante': general[i].estudiante,
+                        'fecha_envio': general[i].fecha_envio,
+                        'link_envio':general[i].link_envio,
+                        'asignados': []
+                      }
+                    
+                    for (let j = 0; j < asignaciones.length; j++) {
+                      //console.log("general[]:", general[i]);
+                      if(general[i].idpersonal == asignaciones[j].idpersonal ){
+                        let temp2 = {
+                          'nombre': asignaciones[j].asignado,
+                          'porcentaje': '--', //pendiente consultar
+                          'nota': '--'
+                        }
+                        temp1.asignados.push(temp2);
+                      }
+                    }
+                    this.estudiantes_evaluar.push(temp1);
+                  }
+                document.getElementById("tbl_1").style.display = 'none';
+                document.getElementById("tbl_2").style.display = 'none';
+                document.getElementById("tbl_3").style.display = null;
+                });
+                })
+
+                
+              }
+              
+            }else{
+              document.getElementById("tbl_1").style.display = null;
+              document.getElementById("tbl_2").style.display = "none";
+              document.getElementById("tbl_3").style.display = "none";
+            }
+            //this.hideLoading();
+            //console.log(document.getElementById("tbl_1"));
+          });
+          this.each_tarea = true;
+          document.getElementById("log").style.display = 'none';
+          document.getElementById("principal_h").style.display = null;
+        });
+        //
+        
     },
     obtener_paralelos(){
       this.paralelo_lista = '';
@@ -537,22 +761,103 @@ const aut = new Vue({
       this.tarea_descripcion = '';
       this.tarea_url = '';
       this.tarea_nota_maxima = '';
-      disable_paralelo= true;
+      this.disable_paralelo= true;
       this.id_tarea_actual = 0;
     },
 
-    get_tareas_estudiante(){
+    abrir_tarea(id_tarea){
+      console.log("id_tarea: ", id_tarea);
+      this.id_tarea_temp_e = id_tarea;
+      let tarea_actual;
+      this.tareas_estudiante.forEach(tar => {
+        if(tar.id == id_tarea){
+          this.tarea_descripcion_e = tar.descripcion;
+          this.fecha_fin_e = tar.fecha_fin;
+          this.adjunto_e = tar.link;
+          this.tarea_url_e = tar.link_envio;
+          if(tar.estado == "ACTIVA"){
+          
+            this.disable_entrega = false;
+            console.log("activar: ", this.disable_entrega);
+          }else {
+            
+            this.disable_entrega = true;
+            console.log("deshabilitar: ", this.disable_entrega);
+          }
+        }
+        
+      });
+      this.tarea_estudiante_info = true;
+    },
+    abrir_link(){
+      window.open(this.adjunto_e, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    },
+    abrir_link_envio(link){
+      window.open(link, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    },
+    enviar_tarea(){
+      let control = new Date(this.fecha_fin_e) < new Date();
+      if(control == true){
+        console.log("fecha_expirada");
+        this.mensaje_v = "Tarea Expirada";
+        this.mensaje_tarea = true;
+        
+      }else{
+        console.log("se ejecuta envio de tarea");
+        if(this.tarea_url_e.trim() != ''){
+          //envio de tarea
+          let tarea = {
+            'estudiante': this.getCookie('TOKEN_1'),
+            'tarea': this.id_tarea_temp_e,
+            'link': this.tarea_url_e
+          };
+          axios.put('tareas_envio',tarea)
+            .then(envio =>{
+              console.log("envío: ", envio.data);
+              this.mensaje_v = "Tarea enviada";
+              this.mensaje_tarea = true;
+              this.tarea_estudiante_info = false;
+              /*Recargar tareas*/
+              this.get_tareas_estudiante(this.asignatura_actual_temp);
+
+
+            });
+        }else{
+          this.mensaje_v = "Ingrese el link de la tarea a entregar";
+          this.mensaje_tarea = true;
+        }
+        
+      }
+    },
+    get_tareas_estudiante(id_asig){
+      
       let array_tar = {
         'periodo': this.campo_periodo[0].idperiodo,
-        'estudiante': +this.getCookie('TOKEN_1')
+        'asignatura': id_asig,
+        'estudiante': this.getCookie('TOKEN_1')
       };
       console.log("array enviado: ", array_tar);
       axios.post("estudiante_tareas",array_tar)
       .then(tar_estu => {
         console.log("tareas_recibidas estudiante: ", tar_estu.data);
         this.tareas_estudiante = tar_estu.data;
+        this.asignatura_actual_temp = id_asig;
       });
     },
+
+    get_materias_estudiante(){
+      let array_mat = {
+        'periodo': this.campo_periodo[0].idperiodo,
+        'estudiante': +this.getCookie('TOKEN_1')
+      };
+      axios.post("estudiante/materias",array_mat)
+      .then(mat_estu => {
+        console.log("tareas_recibidas estudiante: ", mat_estu.data);
+        this.materias_estudiante = mat_estu.data;
+      });
+
+    },
+
     //metodos para evaluar rubrica
     salir_visual_texto(){
       this.persistent2_v = false, 
@@ -976,7 +1281,8 @@ const aut = new Vue({
 
           break;
         case 'homework_e':
-          this.get_tareas_estudiante();
+          //this.get_tareas_estudiante();
+          this.get_materias_estudiante();
           console.log("taareas pendientes a realizar");
 
           break;

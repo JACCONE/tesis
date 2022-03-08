@@ -108,4 +108,14 @@ Route::post('update_tarea',[tareasController::class,'update_tareas'])->name('upd
 Route::get('get_tareas_docente/{id_docente}',[tareasController::class,'get_tareas'])->name('get_tareas_docente.get_tareas');
 Route::post('estudiante_paralelo',[tareasController::class,'get_estudiantes_paralelo'])->name('estudiante_paralelo.get_estudiantes_paralelo');
 Route::post('estudiante_tareas',[tareasController::class,'get_tareas_estudiantes'])->name('estudiante_tareas.get_tareas_estudiantes');
+Route::post('estudiante/materias',[tareasController::class,'get_materias_estudiante'])->name('estudiante_materias.get_materias_estudiante');
+Route::put('tareas_envio',[tareasController::class,'actualizar_tarea_envio'])->name('tareas_envio.actualizar_tarea_envio');
+Route::post('estado_evaluacion',[tareasController::class,'asignacion_estado'])->name('estado_evaluacion.asignacion_estado');
+Route::put('tarea_control',[tareasController::class,'act_tareas_control'])->name('tarea_control.act_tareas_control');
+Route::put('tarea_asignaciones',[tareasController::class,'act_asignacion_estudiante_general'])->name('tarea_asignaciones.act_asignacion_estudiante_general');
+Route::get('get_asignaciones/{id_tarea}',[tareasController::class,'get_asignaciones_general'])->name('get_asignaciones.get_asignaciones_general');
+Route::get('get_asignaciones_tarea/{id_tarea}',[tareasController::class,'get_asignaciones'])->name('get_asignaciones_tarea.get_asignaciones');
+
+
+
 
