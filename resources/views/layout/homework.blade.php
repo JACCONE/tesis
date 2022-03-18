@@ -29,7 +29,7 @@
                 <q-menu>
                   <q-list style="min-width: 100px">
                     <q-item clickable v-close-popup>
-                      <q-item-section @click="tarea_info = true, getHomeWorkInfo(rub.id_tarea)">Editar Información</q-item-section>
+                      <q-item-section @click="tarea_info = true, getHomeWorkInfo(rub.id_tarea,rub.evaluacion_pares)">Editar Información</q-item-section>
                     </q-item>
                     <q-item clickable v-close-popup>
                       <q-item-section @click="estado_tarea(rub.id_tarea,rub.id_asi)" >Proceso de tarea</q-item-section>
@@ -136,6 +136,7 @@
           </tbody>
         </table>
       </div>
+
     </q-card-section>
     <q-separator></q-separator>
     <q-card-actions align="right">
@@ -262,7 +263,10 @@
 
           
             <div style="padding: 5px;display: flex;justify-content: end;">
-                <q-btn color="green-6" label="GUARDAR" @click="actualizar_tareas_envio()"></q-btn>
+                <q-btn color="green-6" 
+                label="GUARDAR" 
+                :disable = "btn_guadar_tarea"
+                @click="actualizar_tareas_envio()"></q-btn>
             </div>
       </div>
     </div>

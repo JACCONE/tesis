@@ -19,6 +19,7 @@ class AsignacionEstudiante extends Migration
             $table->integer('id_asignacion');
             $table->integer('id_estudiante');
             $table->integer('id_asignado');
+            $table->integer('estado');
             $table->timestamps();
             $table->foreign("id_asignacion")
             ->references("id")

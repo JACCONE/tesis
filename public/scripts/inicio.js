@@ -208,7 +208,46 @@ const aut = new Vue({
               
           ], */
           c_eval_pares:0,
-          eval_fin:''
+          eval_fin:'',
+          //parte para evaluacion por pares de estudiantes
+          filter_s_evaluation:'',
+          s_e_columns: [
+            {
+              name: 'desc',
+              required: true,
+              label: 'Nombre de tarea',
+              align: 'left',
+              field: row => row.nombre_tarea,
+              sortable: true
+            },
+            { name: 'description', align: 'center', label: 'Descripción', field: 'd_tarea', sortable: true },
+            { name: 'course', label: 'Asignatura', field: 'nombre_mat', sortable: true },
+            { name: 'teacher', label: 'Docente', field: 'docente' },
+            { name: 'status', label: 'Estado', field: 'estado' }
+          ],
+          s_e_rows: [
+           /*  {
+                nombre_tarea: 'Tarea No 1',
+                description: 'Descrpcion de tarea numero 1',
+                course: 'Aplicaciones de Base de Datos',
+                teacher: 'Ing. Lorena Bowen',
+                id_tarea: 1,
+                id_asignatura: 2,
+                status: 1
+            } */],
+
+            homework_items: [   
+              /* {id: 1, nombre: "INTRODUCCION"},
+              {id: 2, nombre: "CUERPO"},
+              {id: 3, nombre: "DESARROLLO"}  */
+            ],
+            actual_homework: '',
+            id_rub_actual2: 0, 
+            s_e_evaluaciones:[],
+            homework_options: [1, 2, 3, 4, 5],
+            btn_guadar_tarea:false,
+            fullHeightRubrica3 : false,
+            link_evaluar:''
 
       
         
@@ -307,15 +346,64 @@ const aut = new Vue({
     },
   },
   methods: {
+
+    //metodos para evaluacion por pares
+    onRowClick (evt, row) {
+      console.log("fila seleccionada: ", row);
+      this.actual_homework = row.nombre_tarea+" - "+row.d_tarea;
+      this.id_rub_actual2 = row.id_rubrica;
+      this.link_evaluar = row.link_drive;
+      $("#s_e_individual").show();
+      $("#s_e_principal").hide();
+      this.criterios_niveles_evaluacion(row.id_rubrica);
+      // peticion para traer la rubrica
+      //peticion para obtener los criterios de la rubrica en los arrays
+  },
+  onRowBack(){
+      $("#s_e_individual").hide();
+      $("#s_e_principal").show();
+      this.t_niveles = [];
+      this.t_criterios.criterios = [];
+      this.homework_items = [];
+      this.s_e_evaluaciones = [];
+
+
+  },
+  s_e_save_evaluation() {
+      if (this.s_e_evaluaciones.length === this.homework_items.length) {
+        //validar primero el cuestionario
+
+        //guardar cuestionario de satisfaccion de la rubrica
+
+        //guardar calificaciones
+        console.log(this.s_e_evaluaciones);
+
+          for (x in this.s_e_evaluaciones) {
+              console.log("calificacion: " + this.s_e_evaluaciones[x] + " " + this.homework_items[x].nombre + " id_item:" + this.homework_items[x].id);
+          }
+
+      } else {
+          alert("Complete todos los items");
+      }
+  },
+    // fin metodos para evaluacion por pares
     //metodos adicionale
 
-    getHomeWorkInfo(id_tarea){
+    getHomeWorkInfo(id_tarea,asig_pares){
         if(id_tarea == 0){
           this.get_asignaturas();
           this.get_rubricas_tareas();
           this.periodo_actual = this.campo_periodo[0].nombre;
           this.tarea_info = true;
         }else{
+          //validar si la tarea ya tiene ejecucion por pares
+          //console.log("estado asignacion: ", asig_pares);
+          if(asig_pares == 1){
+            //bloquear edición de tarea
+            this.btn_guadar_tarea = true;
+          }else{
+            this.btn_guadar_tarea = false;
+          }
           this.id_tarea_actual = id_tarea;
           console.log('id_tarea_actual: ', id_tarea);
           this.periodo_actual = this.campo_periodo[0].nombre;
@@ -341,6 +429,16 @@ const aut = new Vue({
     },
 
     save(){
+
+    },
+
+    asig_eval_estudiantes(){
+      axios.get('get_asignaciones_eval/'+this.getCookie('TOKEN_1'))
+      .then(res =>{
+        console.log("asignados para evaluarse: ", res.data);
+        this.s_e_rows = res.data;
+        
+      });
 
     },
     asig_evaluaciones(){
@@ -631,7 +729,7 @@ const aut = new Vue({
                       //console.log("general[]:", general[i]);
                       if(general[i].idpersonal == asignaciones[j].idpersonal ){
                         let temp2 = {
-                          'nombre': asignaciones[j].asignado,
+                          'nombre': asignaciones[j].n_asignado,
                           'porcentaje': '--', //pendiente consultar
                           'nota': '--'
                         }
@@ -710,7 +808,7 @@ const aut = new Vue({
           }else{
             console.log("aqui se guarda");
             const tarea = {
-              'id' : this.id_tarea_actual, 
+              'id_tarea' : this.id_tarea_actual, 
               'id_docente': this.getCookie('TOKEN_1'),
               'id_periodo': this.campo_periodo[0].idperiodo,
               'id_asignatura': this.materia_lista.id_materia,
@@ -794,6 +892,9 @@ const aut = new Vue({
     },
     abrir_link_envio(link){
       window.open(link, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    },
+    abrir_link_evaluar(){
+      window.open(this.link_evaluar, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
     },
     enviar_tarea(){
       let control = new Date(this.fecha_fin_e) < new Date();
@@ -1284,6 +1385,12 @@ const aut = new Vue({
           //this.get_tareas_estudiante();
           this.get_materias_estudiante();
           console.log("taareas pendientes a realizar");
+
+          break;
+        case 'student_e':
+          console.log("evaluacion por pares");
+          $("#s_e_individual").hide();
+          this.asig_eval_estudiantes();
 
           break;
         default:
@@ -1925,11 +2032,7 @@ const aut = new Vue({
             })
         })       
         });//fin del response de rubrica
-      })
-
-
-
-     
+      })  
         
       //this.limpiar_rubrica(); -- cometado para probar si es por esto el error
 
@@ -2168,6 +2271,63 @@ const aut = new Vue({
       this.n_rub_visual = rubrica.nombre;
       this.fullHeightRubrica2 = true;
     },
+    mostrar_rubrica_completa2(id_rubrica){
+      this.cargar_data_rubrica(id_rubrica);
+      //this.n_rub_visual = rubrica.nombre;
+      this.fullHeightRubrica3 = true;
+    },
+    criterios_niveles_evaluacion(id_rubrica)
+    {
+      axios
+      .get('criterio/'+id_rubrica)
+      .then(response2 => {
+        //console.log("data de criterios de rubrica: ", response2.data);
+        //this.model.cam = this.campo.find(el=>el.id==1);
+        this.t_criterios.criterio = [];
+        for (let i = 0; i< response2.data.length; i++) {
+          let temp = {};
+            temp = {id_c:response2.data[i].id, nombre:response2.data[i].nombre,porcentaje:response2.data[i].porcentaje,c_item:0,model:false,id_bd:response2.data[i].id};
+            this.t_criterios.criterio.push(temp);
+        };
+        this.t_criterios.criterio.forEach(element_c => {
+              let temp4 = {
+                'id': element_c.id_c,
+                'nombre': element_c.nombre
+              }
+              this.homework_items.push(temp4);
+        });
+
+        axios
+        .get('niveles/'+id_rubrica)
+        .then(response7 => {
+         // console.log("data de niveles de rubrica: ", response7.data);
+          //this.model.cam = this.campo.find(el=>el.id==1);
+          this.t_niveles = [];
+          let cont = 0;
+          response7.data.forEach(element7 =>{
+           // console.log("element7: ", element7.id);
+            let id_b = "b"+(cont+1);
+            let temp = {};
+            let id = element7.id;
+            //console.log("id del nivel tomado: ", id)
+            temp = {
+              id:id
+              ,id_r:element7.id_rubrica
+              ,texto:element7.nombre
+              ,valor:element7.valoracion
+              ,id_b:id_b
+            };
+              this.t_niveles.push(temp);
+              //console.log("t_nevieles despues de guardarlo: ", this.t_niveles);
+              cont= cont+1;
+
+          });this.c_niveles = cont;
+          console.log("niveles: ", this.c_niveles);
+        });  
+
+      });
+
+    },
     mostrar_rubrica(rub){
       this.control = 1;
         //validacion de estado de la rubrica
@@ -2241,6 +2401,11 @@ const aut = new Vue({
                 "nombre":element_c.nombre
               }
               items_criterios2.push(temp3);
+              /* let temp4 = {
+                'id': element_c.id_c,
+                'nombre': element_c.nombre
+              }
+              this.homework_items.push(temp4); */
         });
      // console.log("enviando: ", items_criterios2.length);
       axios

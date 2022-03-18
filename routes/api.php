@@ -115,6 +115,7 @@ Route::put('tarea_control',[tareasController::class,'act_tareas_control'])->name
 Route::put('tarea_asignaciones',[tareasController::class,'act_asignacion_estudiante_general'])->name('tarea_asignaciones.act_asignacion_estudiante_general');
 Route::get('get_asignaciones/{id_tarea}',[tareasController::class,'get_asignaciones_general'])->name('get_asignaciones.get_asignaciones_general');
 Route::get('get_asignaciones_tarea/{id_tarea}',[tareasController::class,'get_asignaciones'])->name('get_asignaciones_tarea.get_asignaciones');
+Route::get('get_asignaciones_eval/{id_estudiante}',[tareasController::class,'get_asignaciones_estudiantes'])->name('get_asignaciones_eval.get_asignaciones_estudiantes');
 
 
 

@@ -81,6 +81,8 @@
                     <div id="eva_estudiante_interface" class="interface" style="display: none;">@include('layout.eva_estudiante')</div>
                     <div id="homework_interface" class="interface" style="display: none;">@include('layout.homework')</div>
                     <div id="homework_e_interface" class="interface" style="display: none;">@include('layout.homework_e')</div>
+                    <div id="student_e_interface" class="interface" style="display: none;">@include('layout.student_evaluation')</div>
+
                     {{-- loading --}}
                     
                     
