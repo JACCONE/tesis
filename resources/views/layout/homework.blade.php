@@ -106,29 +106,30 @@
           <thead style="height: 50px;">
             <tr>
               <th class="cabecera" style="width: 25%">ESTUDIANTE</th>
-              <th class="cabecera" style="width: 10%">FECHA ENVÍO</th>
-              <th class="cabecera" style="width: 6%;">LINK</th>
+              <th class="cabecera" style="width: 10%">NOTA DOCENTE</th>
+              {{-- <th class="cabecera" style="width: 6%;">LINK</th> --}}
               <th class="cabecera" style="width: 30%">EVALUACIONES</th>
             </tr>
           </thead>  
           <tbody>
             <tr v-for="(eva, index) in estudiantes_evaluar" :key="index" style="height: 45px">
               <td>@{{eva.estudiante}}</td>
-              <td>@{{eva.fecha_envio}}</td>
-              <td> <q-btn v-if = "eva.link_envio != ''"
+              <td>@{{eva.nota_docente}}</td>
+              {{-- <td> <q-btn v-if = "eva.link_envio != ''"
                 round
                 color="primary"
                 size="sm" 
                 icon="link"
                 @click = "abrir_link_envio(eva.link_envio)"
-              /></td>
+              /></td> --}}
               <td class="flex column">
                 <div v-for="asignados in eva.asignados" style="display: flex;">
                   <div style="width: 60%; display:flex; align-items:center;">@{{asignados.nombre}}</div>
-                  <div style="width: 20%; display:flex; align-items:center;">@{{asignados.porcentaje}}%</div>
+                  {{-- <div style="width: 20%; display:flex; align-items:center;">@{{asignados.porcentaje}}%</div> --}}
                   <div style="width: 20%; display:flex; align-items:center;">@{{asignados.nota}}</div>
                   
                 </div>
+              </td>
                {{--  <div v-for="(asig, index) in eva.asignados"></div>
                     <div>@{{asig.nombre}}</div>
               </td> --}}

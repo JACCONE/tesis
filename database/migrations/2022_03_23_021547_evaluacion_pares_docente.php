@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class TareaEjecucion extends Migration
+class EvaluacionParesDocente extends Migration
 {
     /**
      * Run the migrations.
@@ -14,17 +14,23 @@ class TareaEjecucion extends Migration
     public function up()
     {
         //
-        Schema::create('tareas_ejecucion', function(Blueprint $table){
+        Schema::create('evaluacion_pares_docente', function(Blueprint $table){
             $table->id();
-            $table->integer('id_estudiante');
             $table->integer('id_tarea');
-            $table->text('link_drive');
-            $table->timestamp('fecha_envio');
-            $table->integer('calificado');
+            $table->integer('id_estudiante');
+            $table->integer('id_criterio');
+            $table->integer('id_nivel');
+            $table->text('observacion');
+            $table->timestamp('fecha_evaluacion');
             $table->timestamps();
             $table->foreign("id_tarea")
             ->references("id")
             ->on("tareas_envio")
+            ->onDelete("cascade")
+            ->onUpdate("cascade"); 
+            $table->foreign("id_criterio")
+            ->references("id")
+            ->on("rubrica_criterios")
             ->onDelete("cascade")
             ->onUpdate("cascade"); 
         });
@@ -38,6 +44,6 @@ class TareaEjecucion extends Migration
     public function down()
     {
         //
-        Schema::dropIfExists('tareas_ejecucion');
+        Schema::dropIfExists('evaluacion_pares_docente');
     }
 }

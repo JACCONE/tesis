@@ -116,7 +116,11 @@ Route::put('tarea_asignaciones',[tareasController::class,'act_asignacion_estudia
 Route::get('get_asignaciones/{id_tarea}',[tareasController::class,'get_asignaciones_general'])->name('get_asignaciones.get_asignaciones_general');
 Route::get('get_asignaciones_tarea/{id_tarea}',[tareasController::class,'get_asignaciones'])->name('get_asignaciones_tarea.get_asignaciones');
 Route::get('get_asignaciones_eval/{id_estudiante}',[tareasController::class,'get_asignaciones_estudiantes'])->name('get_asignaciones_eval.get_asignaciones_estudiantes');
-
-
-
+Route::put('evaluacion_pares_estudiante',[tareasController::class,'guardar_evaluacion_pares'])->name('evaluacion_pares_estudiante.guardar_evaluacion_pares');
+Route::get('question_satisfaccion/{tipo}',[tareasController::class,'get_satisfaccion_question'])->name('question_satisfaccion.get_satisfaccion_question');
+Route::post('guardar_cuestionario',[tareasController::class,'save_cuestionario'])->name('guardar_cuestionario.save_cuestionario');
+Route::get('validar_cuestionario/{rubrica}/{estudiante}',[tareasController::class,'control_cuestionario'])->name('validar_cuestionario.control_cuestionario');
+Route::get('get_asignaciones_doce/{id_docente}',[tareasController::class,'get_asignaciones_docente'])->name('get_asignaciones_doce.get_asignaciones_docente');
+Route::put('evaluacion_pares_docente',[tareasController::class,'guardar_evaluacion_docente'])->name('evaluacion_pares_docente.guardar_evaluacion_docente');
+Route::get('get_notas_docente/{id_tarea}',[tareasController::class,'get_notas_docente'])->name('get_notas_docente.get_notas_docente');
 

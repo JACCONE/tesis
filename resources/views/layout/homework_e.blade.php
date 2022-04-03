@@ -1,4 +1,42 @@
-<div style="display: flex;
+<div id="aut" style="height: 100%;">
+    <div class="mat_estu_general">
+    <div class="mat_estu_asignaturas"> <!-- materias estudiante -->
+        <div style="padding-bottom: 5px;"><div class="mat_estu_asig_name text-green-6 noselect">ASIGNATURAS</div></div>
+            <div v-for="(mat, index) in materias_estudiante" :key="index" 
+            class="mat_estu" @click = "get_tareas_estudiante(mat.id_asignatura)">
+                <div style="font-weight: bold;">@{{mat.nombre}}</div>
+                <div><span style="font-weight: bold;" class="text-caption text-grey-7">@{{mat.tareas}}</span><span class="text-caption text-grey-7"> tareas pendientes</span></div>
+            </div>
+    </div>
+    <div class="mat_estu_tareas"><!-- tareas por materia -->
+        <div v-for="(tar, index) in tareas_estudiante" :key="index" style="">
+        <q-card class="my-card" flat bordered @click="abrir_tarea(tar.id)">
+            <q-card-section >
+                <div class="text-h5">@{{tar.nombre}}</div>
+                <div class="text-caption text-grey">
+                <span style="font-weight: bold;">Asignatura: </span> @{{tar.materia}}
+                </div>
+                <div class="text-caption text-grey">
+                <span style="font-weight: bold;">Descripción: </span>@{{tar.descripcion}}
+                </div>
+                <div class="text-caption text-grey">
+                    <span style="font-weight: bold;">Estado: </span>@{{tar.estado}}
+                </div>
+            </q-card-section>
+        </q-card>
+        
+   
+        </div>
+    </div>
+
+
+
+
+
+</div>
+</div>
+
+{{-- <div style="display: flex;
 flex-direction: row;">
     <div style="display: flex;
     flex-direction: column;
@@ -56,7 +94,7 @@ flex-direction: row;">
 
     </div>
 </div>
-
+ --}}
 <q-dialog v-model="tarea_estudiante_info" persistent>
     <q-card style="width: 1000px;max-width: 1000px">
       <q-card-section class="row items-center q-pb-none">

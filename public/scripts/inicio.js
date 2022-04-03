@@ -15,7 +15,6 @@ const aut = new Vue({
     currentPage:'rubrica',
     rub_general: [],
     rub_general_expertos: [],
-
     fixed: false,
     maximizedToggle: true,
     fullHeight: false,
@@ -23,7 +22,6 @@ const aut = new Vue({
     fullHeightRubrica2: false, // PARA VISUAL DE RUBRICA SOLO VISUAL SIN EDICION
     drawer:false,
     //NUEVAS 2021 -12-08
-
     //PARA INGRESAR EXPERTO
     experto_nombres:'',
     experto_apellidos:'',
@@ -39,7 +37,6 @@ const aut = new Vue({
     docentes_filtro: [],
     docente_seleccionado:'',
     label2:'',
-
     //para nuevos cambios en rub Jorge
     n_rub : '',
     d_rub : '',
@@ -76,7 +73,7 @@ const aut = new Vue({
   control_guardar_editar: 1, // 1 para guardar, 2 para editar criterio
   item_criterio_temporal : [
   ],
-        //todos los valores de id generados se deben actualizar al iniciar una edicion de cualquier rúbrica    
+  //todos los valores de id generados se deben actualizar al iniciar una edicion de cualquier rúbrica    
   n_nivel_act: '',//esta variable es para manejar el nombre actual del texto del nivel a modificar
   id_b_actual: '',//esta variable es para manejar el id_b actual modificado del nivel 
   b_id: 4, // para generar id de botones eliminar
@@ -106,7 +103,6 @@ const aut = new Vue({
   asignatura_filtro:[],
   total_asig: [],
   control:0,// control para guardar editar rubrica
-
   // 19/12/2021 para parte nueva de gestor de evaluaciones
   externo: false,
   cabecera_eval: [
@@ -139,8 +135,6 @@ const aut = new Vue({
   confirm_2:false,
   eva_observacion: '',
   crit_4: false,
-  /* 
-  asig_filtrado: [] */
   // para gestion de tareas docente
   dense:false,
         fixed: false,
@@ -195,22 +189,15 @@ const aut = new Vue({
         disable_entrega:true,
         id_tarea_temp_e: 0,
         asignatura_actual_temp: 0,
-          /* ambiente: null,
-          ambientes: [],
-          usuarios: [],
-          resultado: [],
-          columnas: [
-              { name: 'estudiante', label: 'ESTUDIANTE', field: 'estudiante' },
-              { name: 'correo', label: 'CORREO', field: 'correo' },
-              { name: 'estado', label: 'ESTADO', field: 'estado' },
-              { name: 'fecha', label: 'FECHA ENVÍO', field: 'fecha_envio' },
-              { name: 'link', label: 'LINK', field: 'link_envio' }
-              
-          ], */
           c_eval_pares:0,
           eval_fin:'',
           //parte para evaluacion por pares de estudiantes
           filter_s_evaluation:'',
+           //parte para evaluacion por pares de estudiantes
+          filter_s_evaluation_t:'',
+          pagination: {
+            rowsPerPage: 30 // current rows per page being displayed
+          },
           s_e_columns: [
             {
               name: 'desc',
@@ -220,26 +207,29 @@ const aut = new Vue({
               field: row => row.nombre_tarea,
               sortable: true
             },
-            { name: 'description', align: 'center', label: 'Descripción', field: 'd_tarea', sortable: true },
+           // { name: 'description', align: 'center', label: 'Descripción', field: 'd_tarea', sortable: true },
             { name: 'course', label: 'Asignatura', field: 'nombre_mat', sortable: true },
             { name: 'teacher', label: 'Docente', field: 'docente' },
-            { name: 'status', label: 'Estado', field: 'estado' }
+           // { name: 'status', label: 'Estado', field: 'estado' }
           ],
-          s_e_rows: [
-           /*  {
-                nombre_tarea: 'Tarea No 1',
-                description: 'Descrpcion de tarea numero 1',
-                course: 'Aplicaciones de Base de Datos',
-                teacher: 'Ing. Lorena Bowen',
-                id_tarea: 1,
-                id_asignatura: 2,
-                status: 1
-            } */],
+          s_e_rows: [],
+            s_e_columns_t: [
+              {
+                name: 'desc',
+                required: true,
+                label: 'Nombre de tarea',
+                align: 'left',
+                field: row => row.nombre_tarea,
+                sortable: true
+              },
+             // { name: 'description', align: 'center', label: 'Descripción', field: 'd_tarea', sortable: true },
+              { name: 'course', label: 'Asignatura', field: 'nombre_mat', sortable: true },
+              { name: 'teacher', label: 'Docente', field: 'docente' },
+             // { name: 'status', label: 'Estado', field: 'estado' }
+            ],
+            s_e_rows_t:[],
 
             homework_items: [   
-              /* {id: 1, nombre: "INTRODUCCION"},
-              {id: 2, nombre: "CUERPO"},
-              {id: 3, nombre: "DESARROLLO"}  */
             ],
             actual_homework: '',
             id_rub_actual2: 0, 
@@ -247,17 +237,30 @@ const aut = new Vue({
             homework_options: [1, 2, 3, 4, 5],
             btn_guadar_tarea:false,
             fullHeightRubrica3 : false,
-            link_evaluar:''
-
-      
-        
-    
-
-
-
-//------------------------
-
-
+            link_evaluar:'',
+            id_asig_estu: 0,
+             //para la parte de cuestionarios de validacion y satisfaccion
+            question: false,
+            validacion:[],
+            cabecera_pregunta_validacion:[
+              {
+                'id_tipo': 1,
+                'cabecera': 'Pienso que la rúbrica'
+              }
+            ],
+            cabecera_preguntas_satisfaccion:[
+              {
+                'id_tipo': 2,
+                'cabecera': 'Me ha resultado útil para'
+              }
+            ],
+            preguntas_val: [],
+            preguntas_sat: [],
+            satisfaccion:[],
+            observacion:[],
+            id_estudiante_tarea: 0,
+            id_tarea_actual2: 0,
+            notas_docente: []
   },
   beforeMount() {
     let cookie_array = document.cookie.split(";");
@@ -303,10 +306,7 @@ const aut = new Vue({
           //peticion para rubricas a evaluar de experto externo
           //this.get_rubricas_expertos();
         }
-
-
     }
-   
     //console.log("before mounted");
     //this.cargar_data_combos();
   
@@ -346,18 +346,26 @@ const aut = new Vue({
     },
   },
   methods: {
-
     //metodos para evaluacion por pares
     onRowClick (evt, row) {
       console.log("fila seleccionada: ", row);
+      this.id_asig_estu = row.id_asignacion_estudiante;
       this.actual_homework = row.nombre_tarea+" - "+row.d_tarea;
       this.id_rub_actual2 = row.id_rubrica;
       this.link_evaluar = row.link_drive;
+      this.id_tarea_actual2 = row.id_tarea;
+      this.id_estudiante_tarea = row.id_estudiante;
       $("#s_e_individual").show();
       $("#s_e_principal").hide();
       this.criterios_niveles_evaluacion(row.id_rubrica);
       // peticion para traer la rubrica
       //peticion para obtener los criterios de la rubrica en los arrays
+  },
+  onRowClick_t(evt, row){
+    console.log("fila seleccionada: ", row);
+    this.filter_s_evaluation = row.nombre_tarea;
+    $("#tareas_tablas").hide();
+    $("#tareas_estudiante").show();
   },
   onRowBack(){
       $("#s_e_individual").hide();
@@ -366,22 +374,44 @@ const aut = new Vue({
       this.t_criterios.criterios = [];
       this.homework_items = [];
       this.s_e_evaluaciones = [];
-
-
+  },
+  onRowBack_t(){
+    $("#tareas_tablas").show();
+    $("#tareas_estudiante").hide();
+},
+  criterio_nota(criterio){
+    console.log("criterio que se califica: ", criterio);
+  },
+  validar_calificacion(objeto){
+    console.log("objeto:", objeto);
   },
   s_e_save_evaluation() {
-      if (this.s_e_evaluaciones.length === this.homework_items.length) {
+      if (this.s_e_evaluaciones.length === this.homework_items.length && this.observacion.length == this.homework_items.length) {
         //validar primero el cuestionario
+        if(this.getCookie('TOKEN_2')== 'ESTUDIANTE'){
+            axios.get('validar_cuestionario/'+this.id_rub_actual2+'/'+this.getCookie('TOKEN_1'))
+          .then(val=>{
+            if(val.data == 0){
+              //peticion para obtener preguntas de satisfaccion
+              axios.get('question_satisfaccion/'+1)
+              .then(con=>{
+                this.preguntas_val = con.data;
+                axios.get('question_satisfaccion/'+2)
+                .then(con2=>{
+                  this.preguntas_sat = con2.data;
+                  this.question = true;
+                });
+              });
+            }else{
 
+              this.save_question();
+            }
+            
+          });
+        }else if(this.getCookie('TOKEN_2')== 'DOCENTE'){
+          this.save_question_docente(); 
+        }
         //guardar cuestionario de satisfaccion de la rubrica
-
-        //guardar calificaciones
-        console.log(this.s_e_evaluaciones);
-
-          for (x in this.s_e_evaluaciones) {
-              console.log("calificacion: " + this.s_e_evaluaciones[x] + " " + this.homework_items[x].nombre + " id_item:" + this.homework_items[x].id);
-          }
-
       } else {
           alert("Complete todos los items");
       }
@@ -427,23 +457,160 @@ const aut = new Vue({
         //this.tarea_actual = id_tarea;
 
     },
-
-    save(){
+    save_question(){
+           //guardar parte de evaluacion por pares
+           let array_cal = [];
+           for (let i = 0; i < this.s_e_evaluaciones.length; i++) {
+             //console.log("calificacion: " + this.s_e_evaluaciones[i].id + " " + this.homework_items[i].nombre + " id_item:" + this.homework_items[i].id)
+             let temp= {
+               'id_asignacion_estudiante': this.id_asig_estu,
+               'id_nivel': this.s_e_evaluaciones[i].id,
+               'id_criterio': this.homework_items[i].id,
+               'observacion': this.observacion[i]
+             }
+             array_cal.push(temp);
+           }
+           //peticion para guardar evaluaciones por pares
+           axios.put('evaluacion_pares_estudiante',array_cal)
+           .then(resultado => {
+             console.log("resultado: ", resultado.data);
+             this.asig_eval_estudiantes();
+             this.onRowBack();
+           });
+    },
+    save_question_docente(){
+      //guardar parte de evaluacion por pares
+      let array_cal2 = [];
+      for (let i = 0; i < this.s_e_evaluaciones.length; i++) {
+        //console.log("calificacion: " + this.s_e_evaluaciones[i].id + " " + this.homework_items[i].nombre + " id_item:" + this.homework_items[i].id)
+        let temp5= {
+          'id_tarea': this.id_tarea_actual2,
+          'id_estudiante': this.id_estudiante_tarea,
+          'id_nivel': this.s_e_evaluaciones[i].id,
+          'id_criterio': this.homework_items[i].id,
+          'observacion': this.observacion[i]
+        }
+        array_cal2.push(temp5);
+      }
+      //peticion para guardar evaluaciones por pares
+      axios.put('evaluacion_pares_docente',array_cal2)
+      .then(resultado => {
+        console.log("resultado: ", resultado.data);
+        this.asig_eval_docente();
+        this.onRowBack();
+      });
+},
+    save_cuestionario(){
+      let temp =0;
+      let temp2 =0;
+      this.validacion.forEach(vali => { 
+        if(vali != ""){
+          temp = temp + 1;
+        }
+      });
+      this.satisfaccion.forEach(sati => { 
+        if(sati != ""){
+          temp2 = temp2 + 1;
+        }
+      });
+      if(this.preguntas_sat.length == temp2 && this.preguntas_val.length == temp){
+        //guardo el cuestionario
+        let array_cuestionario =[];
+        for(let i = 0 ; i<this.satisfaccion.length; i++){
+          let temp3 = {
+            'id_rubrica': this.id_rub_actual2,
+            'id_estudiante': this.getCookie('TOKEN_1'),
+            'calificacion': this.satisfaccion[i],
+            'id_pregunta': this.preguntas_sat[i].id
+          };
+          array_cuestionario.push(temp3);
+        };
+        for(let j = 0 ; j<this.validacion.length; j++){
+          let temp4 = {
+            'id_rubrica': this.id_rub_actual2,
+            'id_estudiante': this.getCookie('TOKEN_1'),
+            'calificacion': this.validacion[j],
+            'id_pregunta': this.preguntas_val[j].id
+          };
+          array_cuestionario.push(temp4);
+        }
+        console.log("array cuestionario: ", array_cuestionario);
+        axios.post('guardar_cuestionario',array_cuestionario)
+        .then(cuestio => {
+          console.log("guardado: ", cuestio.data);
+          if( cuestio.data == 1){
+            this.question = false;
+            this.preguntas_sat = [];
+            this.preguntas_val = [];
+            this.satisfaccion = [];
+            this.validacion = [];
+            this.save_question();
+          }else{
+            alert("Error al guardar...");
+          }
+        })
+      }else{
+        alert("Complete el cuestionario");
+      }
+      
+    },
+    asig_eval_docente(){
+      axios.get('get_asignaciones_doce/'+this.getCookie('TOKEN_1'))
+      .then(res =>{
+        console.log("asignados para evaluarse con el docente: ", res.data);
+        this.s_e_rows = res.data;
+        //array para nueva tabla de mostrar tareas solamente
+        let temp_n = [];
+        
+        this.s_e_rows.forEach(todos => {
+          let control = 0;
+          console.log("entre a ciclo todos: " ,todos);
+          if(this.s_e_rows_t.length == 0){
+            console.log("entre a primero.")
+            let temp = todos;
+            this.s_e_rows_t.push(temp);
+          }else{
+            this.s_e_rows_t.forEach(ele => {
+            console.log("entre a ciclo ele: " ,ele);
+            if(ele.nombre_tarea == todos.nombre_tarea ){
+              control = 1;
+              
+            }     
+          });
+          if(control == 0){
+            let temp = todos;
+              this.s_e_rows_t.push(temp);
+              console.log("control: ", control, "nombre tarea: ", todos.nombre_tarea)
+          }
+        }
+          
+        });
+      });
 
     },
-
     asig_eval_estudiantes(){
       axios.get('get_asignaciones_eval/'+this.getCookie('TOKEN_1'))
       .then(res =>{
         console.log("asignados para evaluarse: ", res.data);
         this.s_e_rows = res.data;
-        
+        //array para nueva tabla de mostrar tareas solamente
+        let temp_n = [];
+        this.s_e_rows.forEach(todos => {
+          temp_n.forEach(ele => {
+            if(ele.nombre_tarea != todos.nombre_tarea ){
+              let temp = todos;
+              temp_n.push(temp);
+            }
+            this.s_e_rows_t.push(temp_n);
+          });
+          
+        });
       });
 
     },
     asig_evaluaciones(){
       //validar que no tenga la asignacion realizada
-      console.log("estado asignacion: ", this.c_eval_pares);
+      //console.log("estado asignacion: ", this.c_eval_pares);
       if(this.c_eval_pares == 0){
         const fecha = Date.now();
         const hoy = new Date(fecha);
@@ -466,6 +633,7 @@ const aut = new Vue({
       }
       
     },
+
     ditribuir_tareas(){
       if(this.cantidad_tareas > this.maximo){
         this.mensaje_v = "El máximo permitido es: "+this.maximo;
@@ -538,11 +706,11 @@ const aut = new Vue({
             this.estudiantes_add.forEach(add => {
               
               if(entrega.idpersonal == add.idpersonal){
-                //console.log("aqui: ", add);
+
                 for(var i = 0; i<add.asignaciones.length; i++){
-                  console.log("ultima: ", add.asignaciones[i]);
+                  //console.log("ultima: ", add.asignaciones[i]);
                   if(add.asignaciones[i] != undefined){
-                    console.log("indefinido aqui");
+                    //console.log("indefinido aqui");
                     let temp_nombre = '';
                     for (let j = 0; j < this.estudiantes_entrega.length; j++) {
                       if(this.estudiantes_entrega[j].idpersonal == add.asignaciones[i]){
@@ -565,7 +733,7 @@ const aut = new Vue({
             this.estudiantes_evaluar.push(temp);
             
           });
-          console.log("estudiantes evaluar: ", this.estudiantes_evaluar)
+          //console.log("estudiantes evaluar: ", this.estudiantes_evaluar)
           document.getElementById("tbl_3").style.display = null;
           document.getElementById("tbl_2").style.display = 'none';
           document.getElementById("tbl_1").style.display = 'none';
@@ -577,7 +745,7 @@ const aut = new Vue({
           }
           axios.put('tarea_control',con)
           .then(respuesta => {
-            console.log("id_control: ",respuesta.data);
+           // console.log("id_control: ",respuesta.data);
             let id_asig = respuesta.data;
             let array_e = [];
             this.estudiantes_add.forEach(estu => {
@@ -595,11 +763,11 @@ const aut = new Vue({
                 
               }
             });
-            console.log("array a almacenar: ", array_e);
+           
             //peticion a almacenar las asignaciones
             axios.put('tarea_asignaciones',array_e)
             .then(asig =>{
-              console.log("asignaciones almacenadas:", asig.data );
+              
               document.getElementById("asignar").style.display = "none";
 
             })
@@ -624,7 +792,7 @@ const aut = new Vue({
     asignado_estudiante(estudiante, estudiante_asignar){
       let control = 0;
       estudiante.asignaciones.forEach(asig => {
-        console.log("asig: ", asig, " asignar: ",  estudiante_asignar.idpersonal)
+       
         if(asig == estudiante_asignar.idpersonal){
           if(this.array_ciclo.length == 0){
             this.array_ciclo.push({'idpersonal': estudiante_asignar.idpersonal, 'cantidad':1});
@@ -640,7 +808,7 @@ const aut = new Vue({
           control = 1;
         }
       });
-      console.log("control ", control);
+     
       return control;
     },
     getRandomInt(min, max) {
@@ -648,10 +816,10 @@ const aut = new Vue({
     },
     estado_tarea(id_tarea,id_asigna){
       //this.showLoading();
-       console.log("cargando: ", document.getElementById("log"));
+      
        document.getElementById("log").style.display = null;
        document.getElementById("principal_h").style.display = "none";
-       console.log("principal: ", document.getElementById("principal_h"));
+      
       /*document.getElementById("log").style.display = null; */
       const fecha = Date.now();
       const hoy = new Date(fecha);
@@ -680,19 +848,20 @@ const aut = new Vue({
      
     axios.post('estudiante_paralelo',array)
       .then(estudiantes =>{
-        console.log("estudiantes: ", estudiantes.data);
+        
         this.estudiantes_lista = estudiantes.data;
         this.estudiantes_entrega = this.estudiantes_lista.filter(x => x.estado == "ENVIADA");
-        console.log("estudiantes enviados: ", this.estudiantes_entrega);
+       
         this.maximo = this.estudiantes_lista.length;
         // peticion para obtener el estado de la asignacion de la evaluacion por pares
         
         axios.post('estado_evaluacion',array2)
         .then(est => {
-              console.log("estado de la tarea: ", est.data);
+              
               this.c_eval_pares = est.data;
              // console.log("hoy: ", fecha, " fecha_f: ", fecha_f);
             if(fecha_f <= fecha){
+              console.log("entrando aqui");
               document.getElementById("tbl_1").style.display = "none";
               if(this.c_eval_pares == 0){
                 //caso no asignado evaluacion por pares
@@ -702,36 +871,59 @@ const aut = new Vue({
               }else{
                 //caso asignado evaluacion por pares
                 //validar inahabilitar btn de asignacion de evaluacion
-                console.log(document.getElementById("asignar"));
+               
                 document.getElementById("asignar").style.display = "none";
                 //peticiones para traer datos
                 axios.get('get_asignaciones/'+this.id_tarea_actual)
                 .then(actual =>{
-                  console.log("general: ",actual.data)
+                  
                   let general = actual.data;
 
                   axios.get('get_asignaciones_tarea/'+this.id_tarea_actual)
                 .then(asigna =>{
-                  console.log("Asignaciones: ", asigna.data);
+                  
                   let asignaciones = asigna.data; 
+// prueba para traer notas docente y estudiantes
+                axios.get('get_notas_docente/'+this.id_tarea_actual)
+                .then(notas=>{
+                  console.log("estudiantes con notas: ", notas.data);
+                  let temp_notas = notas.data[0];
+                  let temp_notas_e = notas.data[1];
+
                   let asignados_1 = [];
                   for (let i = 0; i < general.length; i++) {
+                    let nota_temp = 'S/N';
+                    for(let n = 0; n < temp_notas.length; n++){
+                      if(temp_notas[n][0] == general[i].idpersonal){
+                        nota_temp = temp_notas[n][1];
+                      }
+                    }
                     let temp1 =
                       {
                         "id_estudiante": general[i].idpersonal,
                         'estudiante': general[i].estudiante,
-                        'fecha_envio': general[i].fecha_envio,
-                        'link_envio':general[i].link_envio,
+                        //'fecha_envio': general[i].fecha_envio,
+                        //'link_envio':general[i].link_envio,
+                        'nota_docente': nota_temp,
                         'asignados': []
                       }
                     
                     for (let j = 0; j < asignaciones.length; j++) {
+                      //para notas de evaluaciones por pares
+                      
                       //console.log("general[]:", general[i]);
                       if(general[i].idpersonal == asignaciones[j].idpersonal ){
+                        let nota_temp = 'S/N';
+                        for(let k = 0; k<temp_notas_e.length; k++){
+                          if(temp_notas_e[k][0] == general[i].idpersonal && temp_notas_e[k][1] == asignaciones[j].asignado){
+                            nota_temp = temp_notas_e[k][2];
+                          }
+                        }
+
                         let temp2 = {
                           'nombre': asignaciones[j].n_asignado,
-                          'porcentaje': '--', //pendiente consultar
-                          'nota': '--'
+                          /* 'porcentaje': '--', //pendiente consultar */
+                          'nota': nota_temp
                         }
                         temp1.asignados.push(temp2);
                       }
@@ -740,7 +932,8 @@ const aut = new Vue({
                   }
                 document.getElementById("tbl_1").style.display = 'none';
                 document.getElementById("tbl_2").style.display = 'none';
-                document.getElementById("tbl_3").style.display = null;
+                document.getElementById("tbl_3").style.display = null;         
+                })
                 });
                 })
 
@@ -748,6 +941,7 @@ const aut = new Vue({
               }
               
             }else{
+              console.log("entrando aqui2");
               document.getElementById("tbl_1").style.display = null;
               document.getElementById("tbl_2").style.display = "none";
               document.getElementById("tbl_3").style.display = "none";
@@ -769,7 +963,7 @@ const aut = new Vue({
     get_paralelos(){
       axios.get('paralelos/'+this.campo_periodo[0].idperiodo+'/'+this.getCookie('TOKEN_1')+'/'+this.materia_lista.id_materia)
       .then(paralelo =>{
-        console.log("paralelos recibidos: ", paralelo.data);
+       
         this.disable_paralelo = false;
         this.paralelo_lista_options = paralelo.data;
       });
@@ -785,28 +979,21 @@ const aut = new Vue({
       //caso de nueva tarea
       if(this.id_tarea_temp == 0){
         //validacion campos llenos
-        console.log("periodo: ", this.campo_periodo[0].idperiodo);
-        console.log("materia: ", this.materia_lista);
-        console.log("paralelo: ", this.paralelo_lista);
-        console.log("nombre_tarea: ", this.tarea_nombre);
-        console.log("rurbica tarea: ", this.rubrica_tarea);
-        console.log("descricion tarea: ", this.tarea_descripcion);
-        console.log("nota maxima: ", this.tarea_nota_maxima);
+        
         let fecha_i = new Date(this.tarea_inicio);
         let fecha_f = new Date(this.tarea_fin);
-        console.log("fecha inicio: ", this.tarea_inicio, ' :', fecha_i);
-        console.log("fecha fin: ", this.tarea_fin, ' :', fecha_f);
+        
         
         if(this.materia_lista != '' && this.paralelo_lista != ''
         && this.tarea_nombre != '' && this.rubrica_tarea != ''
         && this.tarea_descripcion != '' && this.tarea_nota_maxima != ''
         && this.tarea_inicio != '' && this.tarea_fin != ''){
           if(fecha_i >= fecha_f){
-            console.log("la fecha inicial es menor");
+            
             this.mensaje_v = "La fecha final debe ser mayor a la incial";
             this.mensaje_tarea = true;
           }else{
-            console.log("aqui se guarda");
+            
             const tarea = {
               'id_tarea' : this.id_tarea_actual, 
               'id_docente': this.getCookie('TOKEN_1'),
@@ -824,7 +1011,7 @@ const aut = new Vue({
             };
             axios.post('update_tarea',tarea)
             .then(tarea_act => {
-              console.log("actualizacion tarea ", tarea_act.data);
+              
               //vaciar modal
               this.limpiar_tarea();
               //recargar tareas
@@ -847,7 +1034,7 @@ const aut = new Vue({
     get_tareas_docente(){
       axios.get('get_tareas_docente/'+this.getCookie('TOKEN_1'))
       .then(tar_rec => {
-        console.log("tareas_recibidas: ", tar_rec.data);
+        
         this.homeworks = tar_rec.data;
       });
     },
@@ -864,7 +1051,7 @@ const aut = new Vue({
     },
 
     abrir_tarea(id_tarea){
-      console.log("id_tarea: ", id_tarea);
+      
       this.id_tarea_temp_e = id_tarea;
       let tarea_actual;
       this.tareas_estudiante.forEach(tar => {
@@ -876,11 +1063,11 @@ const aut = new Vue({
           if(tar.estado == "ACTIVA"){
           
             this.disable_entrega = false;
-            console.log("activar: ", this.disable_entrega);
+           
           }else {
             
             this.disable_entrega = true;
-            console.log("deshabilitar: ", this.disable_entrega);
+            
           }
         }
         
@@ -899,12 +1086,12 @@ const aut = new Vue({
     enviar_tarea(){
       let control = new Date(this.fecha_fin_e) < new Date();
       if(control == true){
-        console.log("fecha_expirada");
+        
         this.mensaje_v = "Tarea Expirada";
         this.mensaje_tarea = true;
         
       }else{
-        console.log("se ejecuta envio de tarea");
+        
         if(this.tarea_url_e.trim() != ''){
           //envio de tarea
           let tarea = {
@@ -914,7 +1101,7 @@ const aut = new Vue({
           };
           axios.put('tareas_envio',tarea)
             .then(envio =>{
-              console.log("envío: ", envio.data);
+             
               this.mensaje_v = "Tarea enviada";
               this.mensaje_tarea = true;
               this.tarea_estudiante_info = false;
@@ -937,10 +1124,10 @@ const aut = new Vue({
         'asignatura': id_asig,
         'estudiante': this.getCookie('TOKEN_1')
       };
-      console.log("array enviado: ", array_tar);
+     
       axios.post("estudiante_tareas",array_tar)
       .then(tar_estu => {
-        console.log("tareas_recibidas estudiante: ", tar_estu.data);
+        
         this.tareas_estudiante = tar_estu.data;
         this.asignatura_actual_temp = id_asig;
       });
@@ -953,7 +1140,7 @@ const aut = new Vue({
       };
       axios.post("estudiante/materias",array_mat)
       .then(mat_estu => {
-        console.log("tareas_recibidas estudiante: ", mat_estu.data);
+       
         this.materias_estudiante = mat_estu.data;
       });
 
@@ -965,7 +1152,7 @@ const aut = new Vue({
       this.t_nivel_criterio_temp_v=''
     },
     finalizar_evaluacion(){
-      console.log("finalizacion");
+     
       this.confirm_2 = true;
     },
     finalizar_evaluacion_confirmacion(){
@@ -981,7 +1168,7 @@ const aut = new Vue({
         
         axios.post("finalizar/evaluacion",datos)
         .then(final =>{
-          console.log("respuesta de finalizacion: ", final.data);
+         
           if(final.data == 0){
             this.confirm_1 = true;
             
@@ -1006,13 +1193,12 @@ const aut = new Vue({
       let suf = [];
       this.m_item = '';
       this.vaciar_array_temporal(this.item_criterio_temporal);
-      console.log("criterio seleccionado: ", this.m_criterio);
+      
       this.t_criterios.items.forEach(element => {
         if(element.id_c == this.m_criterio.id_c){
           let valor_item = {id_i: element.id_i, n_item: element.n_item};
           this.item_criterio_temporal.push(valor_item);
           this.disable_c = false;
-          
         }
         
       });
@@ -1040,8 +1226,7 @@ const aut = new Vue({
           this.n_observacion= '';
           this.id_eval_temp_gen = 11111111;
           //this.id_eval_temp_suf = 11111111;
-        }
-        
+        } 
       });
 
     },
@@ -1054,12 +1239,12 @@ const aut = new Vue({
         'id_eva':eva,
         'id_item':this.m_item.id_i
       };
-      console.log("temporal 5: ", temp5);
+     
       eva_g.push(temp5);
       axios
       .post('obtener/evaluacion',temp5)
       .then(eva_general => {
-        console.log("prueba: ", eva_general.data);
+       
           if(eva_general.data.length > 0){
           this.id_eval_temp_gen = eva_general.data[0]['id'];
           this.n_coherencia= eva_general.data[0]['coherencia'];
@@ -1107,7 +1292,7 @@ const aut = new Vue({
       
     },
     guardar_evaluacion_item(){
-      console.log("aqui se guarda la evaluacion de la rubrica");
+     
       let eval = [];
       let eval_suf = [];
       //validaciones de campos llenos
@@ -1128,7 +1313,7 @@ const aut = new Vue({
         axios
         .put('evaluacion/general',temp )
         .then(response_eva =>{
-          console.log("response de evaluacion: ", response_eva.data);
+         
           //peticion para guardar suficiencia
           let temp2 = {
             'id': this.id_eval_temp_suf,
@@ -1140,14 +1325,13 @@ const aut = new Vue({
           axios
           .put('evaluacion/suficiencia',temp2)
           .then(response_suf => {
-            console.log("se guardó la suficiencia: ", response_suf.data);
+           
           });
 
         })
         
       }
     },
-
     //metodos para expertos 2021-12-08
     processOption(status,id_experto,nombres,mail,apellidos){
       
@@ -1171,7 +1355,7 @@ const aut = new Vue({
               axios
                   .post("experto/sendInvitation", info)
                   .then((response30) => {
-                      console.log(response30);
+                      
                       this.get_expertos(this.id_rubrica_actual);
 
                       //añadido 31/12/2021 para cambiar estado de la rubrica
@@ -1184,7 +1368,7 @@ const aut = new Vue({
                       axios
                         .put("rubrica/estado",temp_est)
                         .then(est =>{
-                          console.log("cambio del estado realizado a EVALUACION");
+                          
                         });
                   });
               break;
@@ -1199,7 +1383,7 @@ const aut = new Vue({
               axios
                   .post("experto/changeStatus", info2)
                   .then((response30) => {
-                      console.log(response30);
+                      
                       this.get_expertos(this.id_rubrica_actual);
                   });
               break;
@@ -1214,7 +1398,7 @@ const aut = new Vue({
               axios
                   .post("experto/changeStatus", info3)
                   .then((response30) => {
-                      console.log(response30);
+                     
                       this.get_expertos(this.id_rubrica_actual);
                   });
               break;
@@ -1232,7 +1416,7 @@ const aut = new Vue({
               axios
                   .post("experto/sendRubric", info4)
                   .then((response30) => {
-                      console.log(response30);
+                     
                       this.get_expertos(this.id_rubrica_actual);
                   });
               break;
@@ -1245,7 +1429,7 @@ const aut = new Vue({
               axios
               .delete("experto/delete/"+id_experto)
               .then((response30) => {
-                  console.log(response30);
+                
                   this.get_expertos(this.id_rubrica_actual);
               });
               break;
@@ -1302,8 +1486,6 @@ const aut = new Vue({
             this.fullHeight = true;
           });
         }else if(estado_temp == "EDICION"){
-          console.log("estado actual de la rubrica: ", estado_temp);
-          console.log(prueba);
           alert("La Rubrica no está completada!");
         }else{
           alert("La Rubrica no se encuentra en estado para evaluación!")
@@ -1312,25 +1494,29 @@ const aut = new Vue({
         
       },
       set_expertos(){
-        let experto = {
-          "nombres":this.experto_nombres,
-          "apellidos":this.experto_apellidos,
-          "formacion":this.experto_formacion,
-          "cargo":this.experto_cargo,
-          "institucion":this.experto_institucion,
-          "pais":this.experto_pais,
-          "anios":this.experto_anios,
-          "email":this.experto_email,
-          "id_rubrica":this.id_rubrica_actual,
-          "estado":"AGREGADO"
-        };
+          if(this.experto_anios < 0){
+            alert("Años de experiencia no pueden ser negativos");
+          }else{
+          let experto = {
+            "nombres":this.experto_nombres,
+            "apellidos":this.experto_apellidos,
+            "formacion":this.experto_formacion,
+            "cargo":this.experto_cargo,
+            "institucion":this.experto_institucion,
+            "pais":this.experto_pais,
+            "anios":this.experto_anios,
+            "email":this.experto_email,
+            "id_rubrica":this.id_rubrica_actual,
+            "estado":"AGREGADO"
+          };
 
-        axios
-        .post('expertos/insertar',experto)
-        .then(response30 => {
-          this.get_expertos(this.id_rubrica_actual);
-            this.clearExpertosForm();
-        });
+          axios
+          .post('expertos/insertar',experto)
+          .then(response30 => {
+            this.get_expertos(this.id_rubrica_actual);
+              this.clearExpertosForm();
+          });
+        }
       },
     
 
@@ -1338,10 +1524,10 @@ const aut = new Vue({
 
    filterFn_a (value) {
         if(value !== ""){
-          console.log("este es el valor: ", value);
+          
           value = value.toLowerCase();
           this.asignatura_filtro = this.total_asig.filter(asig => asig.nombre.toLowerCase().indexOf(value) !== -1);
-          console.log("despues del filtro: ", this.asignatura_filtro);
+          
         }
   },
     //METODO PARA OBTENER VALOR DE COOKIES
@@ -1384,14 +1570,19 @@ const aut = new Vue({
         case 'homework_e':
           //this.get_tareas_estudiante();
           this.get_materias_estudiante();
-          console.log("taareas pendientes a realizar");
+          
 
           break;
         case 'student_e':
-          console.log("evaluacion por pares");
+          
           $("#s_e_individual").hide();
-          this.asig_eval_estudiantes();
-
+          $("#tareas_estudiante").hide();
+          if(this.getCookie('TOKEN_2') == 'ESTUDIANTE'){
+            this.asig_eval_estudiantes();
+          }
+          if(this.getCookie('TOKEN_2') == 'DOCENTE'){
+            this.asig_eval_docente();
+          }
           break;
         default:
       }
@@ -1404,7 +1595,7 @@ const aut = new Vue({
       .then(response25 => {
         this.rub_general=response25.data;
         this.rub_filtrado = this.rub_general;
-        console.log("rubricas: ", this.rub_general);
+        
         //this.model.sub = this.subdisciplina.find(el=>el.id==2);
       });
     },
@@ -1415,7 +1606,7 @@ const aut = new Vue({
       .then(response_4 => {
         //this.rub_general=response_4.data;
         //this.rub_filtrado = this.rub_general; 
-        console.log("rubricas: ", response_4.data);
+       
         this.rub_general=response_4.data;
         let tmp = response_4.data;
         this.rub_filtrado = tmp; 
@@ -1426,17 +1617,11 @@ const aut = new Vue({
       });
     },
     get_asignaturas(){//peticion para materias de docente segun periodo
-      console.log("idpersonal: ", this.getCookie('TOKEN_1'));
-      console.log("id_periodo: ", this.s_periodo.idperiodo);
        axios.get('materias/'+this.campo_periodo[0].idperiodo+'/'+this.getCookie('TOKEN_1'))
         .then(response3 => {
-          console.log("asignaturas: ", response3.data);
           this.campo_asignatura = response3.data;
         })
     }, 
-
-
-    //-------------------------------------------------------
     //METODOS PARA SESION 
     sesion(){
       if(this.user.trim() == "" || this.password.trim() ==''){
@@ -1449,8 +1634,6 @@ const aut = new Vue({
         axios
           .post('api/autenticar',datos)
           .then(response => {
-            console.log("Respuesta: ", response.data);
-            console.log(response.data.error);
             if(response.data.error == "Ok."){
               //let ok = response.data;
               this.id_pesonal_temp = response.data.id_personal;
@@ -1473,12 +1656,6 @@ const aut = new Vue({
                 console.log("cookies despues: ", document.cookie);
                 location.href = window.location.href+'api/home';
                 console.log("se ejecutó");
-                /* axios
-                .get('api/home')
-                .then(response30 =>{
-                  document.body.innerHTML = response30.data;
-
-                }) */
               });                   
             }else{
               
@@ -1675,8 +1852,8 @@ const aut = new Vue({
         //console.log("entre a guardar nuevo")
         console.log("entre guardar como nuevo", this.control_guardar_editar);
   
-        if(this.n_criterio == '' || this.n_porcentaje == '' || this.c_item == 0){
-          alert("Verifique que ha ingresado el nombre del criterio, porcentaje, al menos debe tener un item agregado")
+        if(this.n_criterio == '' || this.n_porcentaje == '' || this.c_item == 0 || this.n_porcentaje <= 0){
+          alert("Verifique que ha ingresado el nombre del criterio, porcentaje correcto, al menos debe tener un item agregado")
         }
         else{
           let existe = this.existe_criterio(this.n_criterio);

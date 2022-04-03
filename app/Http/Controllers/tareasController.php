@@ -215,8 +215,8 @@ class tareasController extends Controller
         $existe = $validar[0]->total;
         if($existe == 0){
             $insertar = DB::connection('pgsql')->insert("INSERT INTO tesis.tareas_ejecucion(
-            id_estudiante, id_tarea, link_drive, fecha_envio)
-            VALUES ($estudiante, $tarea, '$link', NOW())");
+            id_estudiante, id_tarea, link_drive, fecha_envio,calificado)
+            VALUES ($estudiante, $tarea, '$link', NOW(), 0)");
         }else{
             $actualizar = DB::connection('pgsql')->update("UPDATE tesis.tareas_ejecucion
             set link_drive='$link', 
@@ -264,7 +264,7 @@ class tareasController extends Controller
     }
     public function get_asignaciones_general($id_t){
         $id_ta = $id_t;
-        $asignacion = DB::connection('pgsql')->select("        SELECT distinct
+        $asignacion = DB::connection('pgsql')->select("SELECT distinct
         est.id_estudiante as idpersonal
         ,pe.nombres || ' ' || pe.apellido1 || ' ' || pe.apellido2 AS estudiante
         ,pe.correo_personal_institucional as correo
@@ -307,6 +307,38 @@ class tareasController extends Controller
         ");
         return response()->json($asignaciones); 
     }
+    public function get_asignaciones_docente($id_docente){
+        $id_d = $id_docente;
+        $asignaciones = DB::connection('pgsql')->select("SELECT 
+        env.nombre as nombre_tarea
+        ,env.descripcion as d_tarea
+        ,mat.nombre as nombre_mat
+        ,pe.nombres || ' ' || pe.apellido1 || ' ' || pe.apellido2 AS docente
+        ,pe2.nombres || ' ' || pe2.apellido1 || ' ' || pe2.apellido2 AS asignado
+        , env.id_rubrica 
+        , eje.link_drive
+        , eje.calificado as estado
+        , env.fecha_fin
+        , eje.id_estudiante
+        , eje.id_tarea
+        FROM tesis.tareas_ejecucion eje
+        inner join tesis.tareas_envio env
+        on env.id = eje.id_tarea
+        inner join esq_mallas.materia mat
+        on mat.idmateria = env.id_asignatura
+        inner join esq_datos_personales.personal pe
+        on pe.idpersonal = env.id_docente
+        inner join esq_datos_personales.personal pe2
+        on pe2.idpersonal = eje.id_estudiante
+        where env.id_docente = $id_d
+        and fecha_fin < NOW()
+        and calificado = 'EN PROCESO'
+        group by  nombre_tarea,d_tarea,nombre_mat,docente,asignado, env.id_rubrica 
+        , eje.link_drive, eje.calificado, env.fecha_fin, eje.id_estudiante, eje.id_tarea
+        ");
+        return response()->json($asignaciones); 
+    }
+    
     public function get_asignaciones_estudiantes($id_estudiante){
         $asignaciones_e = DB::connection('pgsql')->select("SELECT 
         tar.nombre as nombre_tarea
@@ -319,6 +351,7 @@ class tareasController extends Controller
         , eje.link_drive
         , est.estado
         , con.fecha_final
+		, est.id as id_asignacion_estudiante
             FROM tesis.asignacion_estudiante est
             inner join tesis.asignacion_control con
             on con.id = est.id_asignacion
@@ -337,7 +370,183 @@ class tareasController extends Controller
             and est.estado = 1
             and con.fecha_final > NOW()
             group by nombre_tarea, d_tarea, nombre_mat, docente, asignado, id_asignado, id_rubrica
-            ,link_drive, est.estado, con.fecha_final");
+            ,link_drive, est.estado, con.fecha_final, est.id");
             return response()->json($asignaciones_e); 
+    }
+    public function guardar_evaluacion_pares(Request $request){
+        $datos = json_decode($request->getContent(), true);
+        foreach($datos as $eval){
+            $id_asignacion = $eval['id_asignacion_estudiante'];
+            $id_criterio = $eval['id_criterio'];
+            $id_nivel = $eval['id_nivel'];
+            $observa = $eval['observacion'];
+            $evaluacion = DB:: connection('pgsql')->insert("INSERT INTO tesis.evaluacion_pares(
+                id_asignacion_estudiante, id_criterio, id_nivel, fecha_evaluacion,observacion)
+                VALUES ($id_asignacion, $id_criterio, $id_nivel, NOW(),'$observa')");
+        }
+        $estado_act = DB::connection('pgsql')->update("UPDATE tesis.asignacion_estudiante
+        SET  estado=2
+        WHERE id = $id_asignacion");
+        return $estado_act;   
+    }
+    public function guardar_evaluacion_docente(Request $request){
+        $datos = json_decode($request->getContent(), true);
+        foreach($datos as $eval){
+            $id_tarea = $eval['id_tarea'];
+            $id_estudiante = $eval['id_estudiante'];
+            $id_criterio = $eval['id_criterio'];
+            $id_nivel = $eval['id_nivel'];
+            $observa = $eval['observacion'];
+            $evaluacion = DB:: connection('pgsql')->insert("INSERT INTO tesis.evaluacion_pares_docente(
+               id_tarea, id_estudiante, id_criterio, id_nivel, fecha_evaluacion,observacion)
+                VALUES ($id_tarea,$id_estudiante, $id_criterio, $id_nivel, NOW(),'$observa')");
+        
+        }
+        $estado_act = DB::connection('pgsql')->update("UPDATE tesis.tareas_ejecucion
+            SET  calificado = 'CALIFICADO'
+            WHERE id_estudiante = $id_estudiante
+            and id_tarea = $id_tarea");
+        return $estado_act;   
+    }
+    public function get_satisfaccion_question($tipo)
+    {
+        $tip = $tipo;
+            $consulta = DB::connection('pgsql')->select("SELECT id, pregunta, tipo
+                FROM tesis.preguntas_cuestionarios
+                where tipo = $tip
+            ");
+            return response()->json($consulta); 
+    }
+    public function save_cuestionario(Request $request){
+        $datos = json_decode($request->getContent(), true);
+        foreach($datos as $eval){
+            $id_rubrica = $eval['id_rubrica'];
+            $id_estudiante = $eval['id_estudiante'];
+            $id_pregunta = $eval['id_pregunta'];
+            $calificacion = $eval['calificacion'];
+            $almacenar = DB::connection('pgsql')->insert("INSERT INTO tesis.satisfaccion_validez(
+                id_rubrica, id_estudiante, id_pregunta, calificacion, fecha_cuestionario)
+                VALUES ( $id_rubrica, $id_estudiante, $id_pregunta, $calificacion, NOW())");
+        }
+        return $almacenar;
+    }
+    public function control_cuestionario($rurbica, $estudiante){
+        $control = DB:: connection('pgsql')->select("SELECT count(*)as total FROM tesis.satisfaccion_validez
+        where id_rubrica= $rurbica
+        and id_estudiante = $estudiante");
+
+        return $control[0]->total;
+
+    }
+    public function get_notas_docente($id_tarea){
+        // obtener nota maxima sobre la que se califica la tarea
+        $nota = DB::connection('pgsql')->select("SELECT nota_maxima as nota_max 
+        FROM tesis.tareas_envio
+        where id = $id_tarea");
+
+        //obtener nivel maximo de la rubrica para la tarea
+        $nivel = DB::connection('pgsql')->select("SELECT max(niv.valoracion)as nivel_max FROM tesis.tareas_envio env
+        inner join tesis.evaluacion_pares_docente eva
+        on eva.id_tarea = env.id
+        inner join tesis.rubrica_niveles niv
+        on niv.id_rubrica = env.id_rubrica
+        where env.id = $id_tarea");
+
+        //obtener estudiantes que enviaron la tarea y estan evaluados por docente
+        $estudiantes = DB::connection('pgsql')->select("SELECT id_estudiante
+        FROM tesis.evaluacion_pares_docente 
+        where id_tarea = $id_tarea
+		group by id_estudiante");       
+
+        //obtener las valoraciones por criterios
+        $cal_criterio = DB::connection('pgsql')->select("SELECT eva.id_estudiante, niv.valoracion, cri.porcentaje
+        FROM tesis.evaluacion_pares_docente eva
+        inner join tesis.rubrica_niveles niv
+        on niv.id = eva.id_nivel
+        inner join tesis.rubrica_criterios cri
+        on cri.id = eva.id_criterio
+        where eva.id_tarea = $id_tarea");
+
+        $por_acu_total = [];
+        //$temp = [];
+        foreach($estudiantes as $estu){
+          
+            $por_acu = 0;
+            foreach($cal_criterio as $cri_not){
+                $porcentaje = $cri_not->porcentaje;
+                $valoracion = $cri_not->valoracion;
+                
+                if($estu->id_estudiante == $cri_not->id_estudiante){
+                    $por_acu = $por_acu + ($porcentaje*$valoracion/$nivel[0]->nivel_max);
+                }
+            };
+            $nota_f = ($nota[0]->nota_max * $por_acu)/100;
+            $añadir = [
+                $estu->id_estudiante,
+                $nota_f
+            ];
+            array_push($por_acu_total, $añadir);
+            
+        } 
+
+        //para notas dadas por estudiantes
+        $cal_estudiantes = DB:: connection('pgsql')->select("SELECT eva.id_asignacion_estudiante,asig.id_estudiante,asig.id_asignado, niv.valoracion, cri.porcentaje
+        FROM tesis.evaluacion_pares eva
+		inner join tesis.asignacion_estudiante asig
+		on asig.id = eva.id_asignacion_estudiante
+		inner join tesis.asignacion_control con
+		on con.id = asig.id_asignacion
+        inner join tesis.rubrica_niveles niv
+        on niv.id = eva.id_nivel
+        inner join tesis.rubrica_criterios cri
+        on cri.id = eva.id_criterio
+        where con.id_tarea = $id_tarea");
+
+        //estudiantes que han evaluado
+        $estudiantes_e = DB::connection('pgsql')->select("SELECT eva.id_asignacion_estudiante
+        FROM tesis.evaluacion_pares eva
+		inner join tesis.asignacion_estudiante asig
+		on asig.id = eva.id_asignacion_estudiante
+		inner join tesis.asignacion_control con
+		on con.id = asig.id_asignacion
+        where con.id_tarea = $id_tarea
+		group by eva.id_asignacion_estudiante");
+
+        $por_acu_total_e = [];
+        foreach($estudiantes_e as $estu_e){
+                
+            $por_acu2 = 0;
+            $id_e = 0;
+            $id_a = 0;
+            foreach($cal_estudiantes as $cal_not){
+                $porcentaje_e = $cal_not->porcentaje;
+                $valoracion_e = $cal_not->valoracion;
+                
+                if($estu_e->id_asignacion_estudiante == $cal_not->id_asignacion_estudiante){
+                    $por_acu2 = $por_acu2 + ($porcentaje_e*$valoracion_e/$nivel[0]->nivel_max);
+                    $id_e = $cal_not->id_estudiante;
+                    $id_a = $cal_not->id_asignado;
+                }
+            };
+            $nota_f_e = ($nota[0]->nota_max * $por_acu2)/100;
+            $añadir2 = [
+                $id_e,
+                $id_a,
+                $nota_f_e
+            ];
+            array_push($por_acu_total_e, $añadir2);
+            
+        } 
+
+        //
+        return response()->json([
+             //$cal_criterio,
+             //$estudiantes_e,
+             //$cal_estudiantes,
+             $por_acu_total,
+             $por_acu_total_e
+        ], 200);
+
+
     }
 }

@@ -100,7 +100,7 @@
                               </div>
                               <div class="row">
                                   <q-input class="col" outlined v-model="experto_pais" label="País" :dense="dense" style="padding: 3px;"></q-input>
-                                  <q-input class="col" outlined v-model="experto_anios" label="Años de Experiencia" type="number" :dense="dense" style="padding: 3px;"></q-input>
+                                  <q-input class="col" min = 1 outlined v-model="experto_anios" label="Años de Experiencia" type="number" :dense="dense" style="padding: 3px;"></q-input>
                               </div>
 
                           </div>
@@ -312,6 +312,7 @@
           v-model.number="n_porcentaje"
           type="number"
           filled
+          min = 1
           style="max-width: 100px; background: rgb(235, 235, 235) !important;"
           dense
         ></q-input>

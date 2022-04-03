@@ -2,6 +2,37 @@
     
     <div id="s_e_principal" style="display: flex;justify-content: center;" >
     <div class="q-pa-md" style="width: 75%">
+      {{-- parte nueva para mostrar tareas primeramente --}}
+      <div id="tareas_tablas">
+        <q-table
+          grid
+          grid-header
+          @row-click = "onRowClick_t"
+          title="Gestor de Revisión"
+          :data="s_e_rows_t"
+          :columns="s_e_columns_t"
+          row-key="name"
+          :filter="filter_s_evaluation_t"
+          :pagination.sync="pagination"
+          hide-header
+        >
+          <template v-slot:top-right>
+            <q-input borderless dense debounce="300" v-model="filter_s_evaluation_t" placeholder="Buscar">
+              <template v-slot:append>
+                <q-icon name="search"></q-icon>
+              </template>
+            </q-input>
+          </template>
+        </q-table>
+      </div>
+      
+  <div id="tareas_estudiante">
+    <q-banner inline-actions rounded class="bg-primary text-white">
+      Evaluación de tareas
+      <template v-slot:action>
+        <q-btn flat label="Atrás" @click="onRowBack_t"></q-btn>
+      </template>
+    </q-banner>
     <q-table
       grid
       grid-header
@@ -11,6 +42,7 @@
       :columns="s_e_columns"
       row-key="name"
       :filter="filter_s_evaluation"
+      :pagination.sync="pagination"
       hide-header
     >
       <template v-slot:top-right>
@@ -21,6 +53,8 @@
         </q-input>
       </template>
     </q-table>
+  </div>
+    
     </div>
   </div>
 
@@ -38,13 +72,22 @@
       <div style="display: flex;justify-content: center;">
         <div class="q-pa-md" style="width: 50%">
           <template v-for="(item, index) in homework_items" :key="index">
-            <div class="row">
+            <div class="row" style="    border: 1px solid #e1dbdb;border-radius: 7px;padding: 10px;    margin-bottom: 5px;">
               <div class="col" style="display: flex;align-items: center;">@{{item.nombre}}</div>
-              <div class="col"><q-select filled v-model="s_e_evaluaciones[index]" 
+              <div class="col">
+                <q-select filled v-model="s_e_evaluaciones[index]" 
                 :options="t_niveles" 
                 option-value="id" 
                 option-label="valor" 
-                {{-- :options="homework_options"  --}}label="Evaluación"></q-select></div>
+                @input="criterio_nota(item)" 
+                
+                {{-- :options="homework_options"  --}}label="Evaluación"></q-select>
+                <q-input 
+                outlined 
+                v-model="observacion[index]" 
+                label="observacion">
+                </q-input>
+              </div>
             </div>
           </template>
         </div>
@@ -131,7 +174,7 @@
 </q-dialog>
 {{-- fin de modal de visual de rubrica  --}}
 
-{{-- modal para edital texto niveles de criterios --}}
+{{-- modal para editar texto niveles de criterios --}}
 <q-dialog v-model="persistent2_v">
   <q-card>
     <q-card-section style="padding-top:13px;padding-bottom:8px;border-bottom:1px solid #d0d0d0;">
@@ -155,6 +198,73 @@
     <q-card-actions align="right" style="margin-top: 67px;background: #114c0f;">
        <q-btn flat label="Salir" color="white" @click = "salir_visual_texto" ></q-btn>
        {{--  <q-btn flat label="Guardar" color="white" @click = "guardar_texto_nivel" ></q-btn> --}}
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
+{{-- modal para cuestionario de satisfacción y validez de la rubrica --}}
+<q-dialog v-model="question" persistent>
+  <q-card>
+    <q-card-section>
+      <div class="text-h6">Cuestionario de Satisfacción y validez de la rúbrica</div>
+    </q-card-section>
+
+    
+    <q-card-section style="max-height: 50vh" class="scroll">
+      <div style="margin-bottom: 10px;
+      color: #737372;
+      font-size: 15px;
+      padding-left: 19px;
+      padding-right: 30px;">Responda las preguntas con un valor del 1 al 5 donde 1 es Muy Bajo y 5 Muy Alto</div>
+      <div style="margin-bottom: 10px;font-weight: bold;">Pienso que la rúbrica...</div>
+      <div>
+        <div v-for="(validez, index) in preguntas_val" :key="index" style="display: flex; margin-bottom: 25px;justify-content: space-between;  padding-left: 20px;
+        padding-right: 27px;}">
+          <div>@{{validez.pregunta}}</div>
+          <div style="max-width: 90px;">
+            <q-input
+            v-model="validacion[index]"
+            type="number"
+            outlined
+            min = 1
+            max = 5
+            label="Puntaje" 
+            dense
+            @change = "validar_calificacion(validez)"
+          ></q-input>  
+          </div>
+
+        </div>
+        <div style="margin-bottom: 10px;font-weight: bold;">Me ha resultado útil para...</div>
+        <div>
+          <div v-for="(satisf, index) in preguntas_sat" :key="index" style="display: flex; margin-bottom: 25px;justify-content: space-between;  padding-left: 20px;
+          padding-right: 27px;}">
+            <div>@{{satisf.pregunta}}</div>
+            <div style="max-width: 90px;">
+              <q-input
+              v-model="satisfaccion[index]"
+              type="number"
+              outlined
+              min = 1
+              max = 5
+              label="Puntaje" 
+              dense
+              @change = "validar_calificacion(satisf)"
+            ></q-input> 
+           
+            </div>
+  
+          </div>
+
+
+      </div>
+      
+    </q-card-section>
+
+
+    <q-card-actions align="right">
+      <q-btn flat label="Cancelar" color="primary" v-close-popup ></q-btn>
+      <q-btn flat label="Guardar" color="primary" @click="save_cuestionario" ></q-btn>
     </q-card-actions>
   </q-card>
 </q-dialog>

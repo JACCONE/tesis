@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Criterios;
-
+use Illuminate\Support\Facades\DB; 
 
 class CriteriosController extends Controller
 {
@@ -71,7 +71,9 @@ class CriteriosController extends Controller
     public function show($id_rubrica) // para consultar Criterios de determidad rubrica
     {
         //$nivel = niveles::find($id)->where('id_rubrica', 61);
-        $cri = Criterios::where('id_rubrica', $id_rubrica)->get();
+        $cri = DB::connection('pgsql')->select("SELECT id, id_rubrica, UPPER(nombre)as nombre, porcentaje
+        FROM tesis.rubrica_criterios where id_rubrica = $id_rubrica");
+        //$cri = Criterios::where('id_rubrica', $id_rubrica)->get();
         //$nivel =niveles::select('id')
         //->where('id_rubrica', 61);
         return response()->json($cri);
