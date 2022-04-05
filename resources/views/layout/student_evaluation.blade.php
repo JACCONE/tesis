@@ -54,6 +54,7 @@
       </template>
     </q-table>
   </div>
+ 
     
     </div>
   </div>
@@ -63,7 +64,7 @@
         Evaluación de tarea - @{{actual_homework}}
         <template v-slot:action>
           <q-btn flat label="Tarea" @click="abrir_link_evaluar"></q-btn>
-          <q-btn flat label="Rubrica" @click="mostrar_rubrica_completa2(id_rub_actual2)"></q-btn>
+          {{-- <q-btn flat label="Rubrica" @click="mostrar_rubrica_completa2(id_rub_actual2)"></q-btn> --}}
           <q-btn flat label="Guardar" @click="s_e_save_evaluation"></q-btn>
           <q-btn flat label="Atrás" @click="onRowBack"></q-btn>
         </template>
@@ -85,12 +86,95 @@
                 <q-input 
                 outlined 
                 v-model="observacion[index]" 
-                label="observacion">
+                label="Observación">
                 </q-input>
               </div>
             </div>
           </template>
         </div>
+      </div>
+      <div id="rubrica_m">
+        <q-banner inline-actions rounded class="bg-primary text-white">
+          RÚBRICA
+         {{--  <template v-slot:action>
+            <q-btn flat label="Mostrar" @click="mostrar_rubrica_completa2(id_rub_actual2)"></q-btn>
+          </template> --}}
+        </q-banner>
+        <q-card class="column full-height">
+          <q-card-section>
+              <div class="text-h6">@{{n_rub_visual}}</div>
+          </q-card-section>
+          <q-separator></q-separator>
+          <q-card-section class="col q-pt-none scroll">
+              <div style="padding-top: 20px;">
+                <div id="inferior">
+                  <div style="display: flex; justify-content: center;">
+                    <div style="width: 90%; display:flex; background:#f1f1f1">
+    
+                  </div>
+                </div>
+    
+                  
+                  <div id="contenedor_rubrica"> 
+                  <div id="rubrica_interna">
+                
+                    <div id="columnas">
+                
+                      <div class="row nivel">
+                        <div class="col cab_rub criterio" >Criterios</div>
+                        <div class="col cab_rub" v-for = "(nivel,index) in t_niveles" v-bind:key = "index">
+                          <span style="display: block">@{{nivel.texto}}</span>
+                          <span>(@{{nivel.valor}})</span>
+    
+                        </div>
+                      </div>
+                        
+                    </div>
+                    <div class="columnas">
+                      <div class="row nivel" v-for = "(criterio,index) in t_criterios.criterio" v-bind:key = "index">
+                        <div class="col cab_rub nuevo_criterio">
+                          <div style="width: 70%; display:flex; flex-direction: column;">
+                            <span class="estilo4">@{{criterio.nombre}}</span>
+                            <span class="estilo5">(@{{criterio.porcentaje}}%)</span>
+                
+                          </div>
+                              
+                
+                              <div style="margin-left: 12px;">
+                                
+                              </div>
+                             
+                        </div>
+                        <div class="col cab_rub " v-for = "(nivel,index2) in t_niveles" v-bind:key = "index2" @click = "editar_nivel_criterio_v(criterio.id_c,nivel.valor)">
+                          <span class="estilo6" v-for = "cri in t_criterios.texto_niveles" v-if = "criterio.id_c == cri.id_c && cri.nivel == nivel.valor ">@{{cri.texto}}</span>
+                          
+                          
+                        </div>
+                
+                      </div>
+                    </div>
+    
+                  </div>
+                  </div>
+                  
+                </div>            
+                  
+                  
+              </div>
+              
+          </q-card-section>
+          <q-separator></q-separator>
+          <q-card-actions align="right">
+            <div>          
+              <q-btn flat label="Volver" color="green-9" @click="fullHeightRubrica3 = false"></q-btn>
+            </div>
+            <div>          
+    {{--           <q-btn flat label="Finalizar" color="green-9" @click="validacion_rubrica_completa"></q-btn>
+     --}}          {{-- <q-btn flat label="Guardar" color="green-9" @click="actualizar_bd()"></q-btn> --}}
+            </div>
+          </q-card-actions>
+      </q-card>
+    
       </div>
     </div>
   </div>
@@ -222,16 +306,17 @@
         padding-right: 27px;}">
           <div>@{{validez.pregunta}}</div>
           <div style="max-width: 90px;">
-            <q-input
+            <q-select
             v-model="validacion[index]"
             type="number"
             outlined
             min = 1
             max = 5
-            label="Puntaje" 
+           
+            :options="[1,2,3,4,5]"
             dense
             @change = "validar_calificacion(validez)"
-          ></q-input>  
+          ></q-select>  
           </div>
 
         </div>
@@ -241,16 +326,16 @@
           padding-right: 27px;}">
             <div>@{{satisf.pregunta}}</div>
             <div style="max-width: 90px;">
-              <q-input
+              <q-select
               v-model="satisfaccion[index]"
               type="number"
               outlined
               min = 1
               max = 5
-              label="Puntaje" 
+              :options="[1,2,3,4,5]"
               dense
               @change = "validar_calificacion(satisf)"
-            ></q-input> 
+            ></q-select> 
            
             </div>
   

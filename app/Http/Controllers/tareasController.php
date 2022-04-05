@@ -216,7 +216,7 @@ class tareasController extends Controller
         if($existe == 0){
             $insertar = DB::connection('pgsql')->insert("INSERT INTO tesis.tareas_ejecucion(
             id_estudiante, id_tarea, link_drive, fecha_envio,calificado)
-            VALUES ($estudiante, $tarea, '$link', NOW(), 0)");
+            VALUES ($estudiante, $tarea, '$link', NOW(), 'EN PROCESO')");
         }else{
             $actualizar = DB::connection('pgsql')->update("UPDATE tesis.tareas_ejecucion
             set link_drive='$link', 
@@ -446,8 +446,6 @@ class tareasController extends Controller
 
         //obtener nivel maximo de la rubrica para la tarea
         $nivel = DB::connection('pgsql')->select("SELECT max(niv.valoracion)as nivel_max FROM tesis.tareas_envio env
-        inner join tesis.evaluacion_pares_docente eva
-        on eva.id_tarea = env.id
         inner join tesis.rubrica_niveles niv
         on niv.id_rubrica = env.id_rubrica
         where env.id = $id_tarea");

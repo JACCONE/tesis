@@ -357,27 +357,34 @@ const aut = new Vue({
       this.id_estudiante_tarea = row.id_estudiante;
       $("#s_e_individual").show();
       $("#s_e_principal").hide();
+      //$("#rurbica_m").show();
       this.criterios_niveles_evaluacion(row.id_rubrica);
+      this.mostrar_rubrica_completa2(this.id_rub_actual2);
       // peticion para traer la rubrica
       //peticion para obtener los criterios de la rubrica en los arrays
   },
   onRowClick_t(evt, row){
     console.log("fila seleccionada: ", row);
     this.filter_s_evaluation = row.nombre_tarea;
+    this.id_rub_actual2 = row.id_rubrica;
     $("#tareas_tablas").hide();
     $("#tareas_estudiante").show();
+    //$("#rurbica_m").hide();
   },
   onRowBack(){
       $("#s_e_individual").hide();
       $("#s_e_principal").show();
+      //$("#rurbica_m").hide();
       this.t_niveles = [];
       this.t_criterios.criterios = [];
       this.homework_items = [];
       this.s_e_evaluaciones = [];
+      this.observacion = [];
   },
   onRowBack_t(){
     $("#tareas_tablas").show();
     $("#tareas_estudiante").hide();
+    //$("#rurbica_m").hide();
 },
   criterio_nota(criterio){
     console.log("criterio que se califica: ", criterio);
@@ -564,14 +571,14 @@ const aut = new Vue({
         
         this.s_e_rows.forEach(todos => {
           let control = 0;
-          console.log("entre a ciclo todos: " ,todos);
+         // console.log("entre a ciclo todos: " ,todos);
           if(this.s_e_rows_t.length == 0){
             console.log("entre a primero.")
             let temp = todos;
             this.s_e_rows_t.push(temp);
           }else{
             this.s_e_rows_t.forEach(ele => {
-            console.log("entre a ciclo ele: " ,ele);
+           // console.log("entre a ciclo ele: " ,ele);
             if(ele.nombre_tarea == todos.nombre_tarea ){
               control = 1;
               
@@ -594,7 +601,33 @@ const aut = new Vue({
         console.log("asignados para evaluarse: ", res.data);
         this.s_e_rows = res.data;
         //array para nueva tabla de mostrar tareas solamente
-        let temp_n = [];
+         //array para nueva tabla de mostrar tareas solamente
+         let temp_n = [];
+        
+         this.s_e_rows.forEach(todos => {
+           let control = 0;
+           //console.log("entre a ciclo todos: " ,todos);
+           if(this.s_e_rows_t.length == 0){
+             console.log("entre a primero.")
+             let temp = todos;
+             this.s_e_rows_t.push(temp);
+           }else{
+             this.s_e_rows_t.forEach(ele => {
+             //console.log("entre a ciclo ele: " ,ele);
+             if(ele.nombre_tarea == todos.nombre_tarea ){
+               control = 1;
+               
+             }     
+           });
+           if(control == 0){
+             let temp = todos;
+               this.s_e_rows_t.push(temp);
+               console.log("control: ", control, "nombre tarea: ", todos.nombre_tarea)
+           }
+         }
+           
+         });
+       /*  let temp_n = [];
         this.s_e_rows.forEach(todos => {
           temp_n.forEach(ele => {
             if(ele.nombre_tarea != todos.nombre_tarea ){
@@ -604,7 +637,7 @@ const aut = new Vue({
             this.s_e_rows_t.push(temp_n);
           });
           
-        });
+        }); */
       });
 
     },
@@ -1574,9 +1607,11 @@ const aut = new Vue({
 
           break;
         case 'student_e':
-          
+          $("#tareas_tablas").show();
+          $("#s_e_principal").show();
           $("#s_e_individual").hide();
           $("#tareas_estudiante").hide();
+         // $("#rurbica_m").hide();
           if(this.getCookie('TOKEN_2') == 'ESTUDIANTE'){
             this.asig_eval_estudiantes();
           }
@@ -2451,7 +2486,7 @@ const aut = new Vue({
     mostrar_rubrica_completa2(id_rubrica){
       this.cargar_data_rubrica(id_rubrica);
       //this.n_rub_visual = rubrica.nombre;
-      this.fullHeightRubrica3 = true;
+      //this.fullHeightRubrica3 = true;
     },
     criterios_niveles_evaluacion(id_rubrica)
     {

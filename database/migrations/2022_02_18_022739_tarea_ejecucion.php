@@ -20,7 +20,7 @@ class TareaEjecucion extends Migration
             $table->integer('id_tarea');
             $table->text('link_drive');
             $table->timestamp('fecha_envio');
-            $table->integer('calificado');
+            $table->text('calificado');
             $table->timestamps();
             $table->foreign("id_tarea")
             ->references("id")
