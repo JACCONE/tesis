@@ -20,6 +20,44 @@
             >
             </q-input>
             <q-select filled 
+            v-model="s_campo" 
+            use-input 
+            :options="campos_u" 
+            option-value="id" 
+            option-label="nombre" 
+            {{-- input-debounce="0" --}}
+            label="Seleccione Campo" 
+            {{-- behavior="menu" --}}
+            dense
+            @input="llenar_disciplinas" 
+            >
+            </q-select>
+            <q-select filled 
+            v-model="s_disciplina" 
+            use-input 
+            :options="disciplinas_u" 
+            option-value="id" 
+            option-label="nombre" 
+            {{-- input-debounce="0" --}}
+            label="Seleccione Disciplina" 
+            {{-- behavior="menu" --}}
+            dense
+            @input="llenar_subdisciplinas" 
+            >
+            </q-select>
+            <q-select filled 
+            v-model="s_subdisciplina" 
+            use-input 
+            :options="subdisciplinas_u" 
+            option-value="id" 
+            option-label="nombre" 
+            {{-- input-debounce="0" --}}
+            label="Seleccione Subdisciplina" 
+            {{-- behavior="menu" --}}
+            dense
+            >
+            </q-select>
+            <q-select filled 
             v-model="s_asignatura" 
             use-input 
             :options="asignatura_filtro" 
@@ -462,6 +500,7 @@
       <q-input dense v-model="n_rubrica"></q-input>
       <div class="estilo13">Descripción Rúbrica</div>
       <q-input dense v-model="d_rubrica"></q-input>
+      
     </q-card-section>
 
     <q-card-actions align="right" class="estilo11">

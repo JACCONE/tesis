@@ -14,6 +14,8 @@ use App\Http\Controllers\RubricaController;
 use App\Http\Controllers\AsignaturasController;
 use App\Http\Controllers\evaluaciones;
 use App\Http\Controllers\tareasController;
+use App\Http\Controllers\estadisticasController;
+use App\Http\Controllers\unesco;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +34,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //para sesiones
 Route::post('/autenticar', [Autenticacion::class,'login'])->name('autenticar');
+Route::post('/autenticar_p', [Autenticacion::class,'login'])->name('autenticar_p.login');
 Route::post('/autenticar/externos', [Autenticacion::class,'login_externos'])->name('autenticar_externos');
 
 Route::post('/registrar', [Autenticacion::class,'usuario'])->name('registrar');
@@ -123,4 +126,34 @@ Route::get('validar_cuestionario/{rubrica}/{estudiante}',[tareasController::clas
 Route::get('get_asignaciones_doce/{id_docente}',[tareasController::class,'get_asignaciones_docente'])->name('get_asignaciones_doce.get_asignaciones_docente');
 Route::put('evaluacion_pares_docente',[tareasController::class,'guardar_evaluacion_docente'])->name('evaluacion_pares_docente.guardar_evaluacion_docente');
 Route::get('get_notas_docente/{id_tarea}',[tareasController::class,'get_notas_docente'])->name('get_notas_docente.get_notas_docente');
+
+//PARA GETOR DE CALCULOS Y ESTADISTICAS
+Route::get('get_rub_eval/{id_docente}',[estadisticasController::class,'get_rub_evaluadas'])->name('get_rub_eval.get_rub_evaluadas');
+Route::get('get_exp_rub/{id_rubrica}',[estadisticasController::class,'get_expertos_rubricas'])->name('get_exp_rub.get_expertos_rubricas');
+Route::get('get_cri_rub_eval/{id_rubrica}',[estadisticasController::class,'get_crit_eval'])->name('get_cri_rub_eval.get_crit_eval');
+Route::get('get_ite_eval/{id_rubrica}',[estadisticasController::class,'get_ite_eval'])->name('get_ite_eval.get_ite_eval');
+Route::get('get_cal_suficiencia/{id_rubrica}',[estadisticasController::class,'get_cal_suf'])->name('get_cal_suficiencia.get_cal_suf');
+Route::get('get_cal_generales/{id_rubrica}',[estadisticasController::class,'get_eva_rub_gen'])->name('get_cal_generales.get_eva_rub_gen');
+Route::get('get_obs_generales/{id_rubrica}',[estadisticasController::class,'get_obs_eva'])->name('get_obs_generales.get_obs_eva');
+Route::get('get_control_eva/{id_rubrica}',[estadisticasController::class,'get_control_eva'])->name('get_control_eva.get_control_eva');
+Route::get('get_cue_pre/{id_rubrica}',[estadisticasController::class,'get_cuestionario_preguntas'])->name('get_cue_pre.get_cuestionario_preguntas');
+Route::get('get_calif_satis_vali/{id_rubrica}',[estadisticasController::class,'get_cuestionario_calificaciones'])->name('get_calif_satis_vali.get_cuestionario_calificaciones');
+Route::get('get_total_est/{id_rubrica}',[estadisticasController::class,'get_total_estu'])->name('get_total_est.get_total_estu');
+//peticiones para alfa de cronbanch
+Route::get('get_cali_doc/{id_rubrica}',[estadisticasController::class,'get_c_doc'])->name('get_cali_doc.get_c_doc');
+Route::get('get_cali_est/{id_rubrica}',[estadisticasController::class,'get_c_est'])->name('get_cali_est.get_c_est');
+Route::get('get_tar_doc/{id_docente}/{id_rubrica}',[estadisticasController::class,'get_t_doc'])->name('get_tar_doc.get_t_doc');
+Route::get('get_totale/{id_rubrica}',[estadisticasController::class,'get_sum_tot_e'])->name('get_totale.get_sum_tot_e');
+Route::get('get_totald/{id_rubrica}',[estadisticasController::class,'get_sum_tot_d'])->name('get_totald.get_sum_tot_d');
+
+//peticiones para datos unesco
+Route::get('get_campos_u',[unesco::class,'get_campos'])->name('get_campos_u.get_campos');
+Route::get('get_disciplinas_u/{id_campo}',[unesco::class,'get_disciplinas'])->name('get_disciplinas_u.get_disciplinas');
+Route::get('get_subdisciplinas_u/{id_disciplina}',[unesco::class,'get_subdisciplinas'])->name('get_subdisciplinas_u.get_subdisciplinas');
+Route::put('save_campo',[unesco::class,'save_campo'])->name('save_campo.save_campo');
+Route::put('update_campo',[unesco::class,'update_campo'])->name('update_campo.update_campo');
+Route::put('save_dis',[unesco::class,'save_dis'])->name('save_dis.save_dis');
+Route::put('update_dis',[unesco::class,'update_dis'])->name('update_dis.update_dis');
+Route::put('save_sdis',[unesco::class,'save_sdis'])->name('save_sdis.save_sdis');
+Route::put('update_sdis',[unesco::class,'update_sdis'])->name('update_sdis.update_sdis');
 

@@ -42,6 +42,19 @@ const aut = new Vue({
     d_rub : '',
     id_rub_temp: '',
     s_periodo:'',
+    bandera_unesco:'',// 1-> campo, 2->disciplina, 3-> subdisciplina
+    s_campo:'', // model de select de campos
+    campos_u:[], // variable que contiene los campos
+    campo_t:'',
+    control_cam:0,
+    control_dis:0,
+    control_sub:0,
+    s_disciplina:'', // model de select de disciplinas
+    disciplinas_u:[], // variable que contiene las disciplinas
+    disciplina_t:'',
+    s_subdisciplina:'', // model de select de subdisciplinas
+    subdisciplinas_u:[], // variable que contiene las subdisciplinas
+    subdisciplina_t:'',
     s_asignatura:'',
     campo_periodo :[], // quemado por el momento, se debe llenar con una peticion
     campo_asignatura :[{
@@ -260,7 +273,141 @@ const aut = new Vue({
             observacion:[],
             id_estudiante_tarea: 0,
             id_tarea_actual2: 0,
-            notas_docente: []
+            notas_docente: [],
+            //para estadisticas y calculos
+            rubricas_eval:[],
+            rub_evaluadas:[],
+            docentes_eval:[],
+            docentes_eval2:[],
+            doc_eval:[],
+            metricas:[
+              {
+                'id_metrica': 1,
+                'nombre': 'Evaluaciones de Expertos'
+              },
+              {
+                'id_metrica': 2,
+                'nombre': 'CVI General'
+              },
+              {
+                'id_metrica': 3,
+                'nombre': 'Alfa de Cronbach'
+              },
+              {
+                'id_metrica': 4,
+                'nombre': 'Satisfacción y Validez'
+              },
+              {
+                'id_metrica': 5,
+                'nombre': 'V de Aiken'
+              }
+            ],
+            metricas_s:[],
+            m_disabled : true,
+            criterio_e:[],
+            items_e:[],
+            suficiancia_cal: [],
+            generales_cal:[],
+            generales_obs:[],
+            control_exp: 1,
+            cvi_general: 0,
+            cal_satis_vali : [],
+            cue_cal_niv_1 : [], // variable que contiene los calculos de las notas del cuestionario de la rubrica
+            cue_cal_niv_2 : [],
+            cue1_suma_niv : [], // contiene las sumas de los porcentajes por nivel y preguntas para obtener la frecuencia        
+            cue2_suma_niv : [],
+            tbl_fre_pro_1 : [{ // contiene los datos de la tabla de frecuencia, porcentaje, porcentaje acumulado
+                'nivel':'Muy Bajo', 
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Bajo',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Medio',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Alto',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Muy Alto',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Total',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': ''
+              }
+            ], 
+            tbl_fre_pro_2 : [
+              {
+                'nivel':'Muy Bajo', 
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Bajo',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Medio',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Alto',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Muy Alto',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': 0
+              },
+              {
+                'nivel':'Total',
+                'frecuencia': 0,
+                'porentaje': 0,
+                'porcentaje_a': ''
+              }
+              
+            ],
+            array_tbl_6: [],
+            ICV_G2 : 0,
+            satis_vali : 0,
+            tbl_v_aiken : [],
+            tr_v_aiken_f : [{
+              "nombre": "Total",
+              "suficiencia": 0,
+              "coherencia": 0,
+              "relevancia": 0,
+              "claridad": 0
+            }],
+            tareas_docente :[], //v-model del combo
+            t_docente:[], //variable con los datos
+            calificaciones_tar : [], // contiene todas las calificaciones para el calculo del alfa de una tarea
+            alfa_c: 0,
+            tbl_alfa:[]       
   },
   beforeMount() {
     let cookie_array = document.cookie.split(";");
@@ -328,7 +475,7 @@ const aut = new Vue({
           .then(response => {
           })
       }else{
-        console.log("iniciar sesion");
+        //console.log("iniciar sesion");
       }
     }
   },
@@ -338,7 +485,7 @@ const aut = new Vue({
         return this.texto
       },
       set(value){
-        console.log('filtro ejecutado!');
+       // console.log('filtro ejecutado!');
         value = value.toLowerCase();
         this.rub_filtrado = this.rub_general.filter(rubrica => rubrica.nombre.toLowerCase().indexOf(value) !== -1)
         this.texto = value
@@ -346,6 +493,1321 @@ const aut = new Vue({
     },
   },
   methods: {
+    /*metodos para parte de la unesco*/ 
+    mostrar_campo(){
+      this.bandera_unesco = 1;
+      $('#solo_campo_').show();
+      $('#completo').show();
+      $('#combo_campo').show();
+      $('#combo_subdisciplina').hide();
+      $('#combo_disciplina').hide();
+      $('#input_campo').show();
+      $('#input_dis').hide();
+      $('#input_sdis').hide();
+      
+    },
+    mostrar_subdisciplina(){
+      this.bandera_unesco = 3;
+      $('#solo_campo_').show();
+      $('#completo').show();
+      $('#input_campo').hide();
+      $('#input_dis').hide();
+      $('#input_sdis').show();
+      $('#combo_campo').show();
+      $('#combo_disciplina').show();
+      $('#combo_subdisciplina').show();
+      
+    },
+    mostrar_disciplina(){
+      console.log("etoy en mostrar disciplina");
+      this.bandera_unesco = 2;
+      $('#completo').show();
+      $('#solo_campo_').show();
+      $('#input_dis').show();
+      $('#input_sdis').hide();
+      $('#input_campo').hide();
+      $('#combo_campo').show();
+      $('#combo_disciplina').show();
+      $('#combo_subdisciplina').hide();
+      this.s_disciplina.value = '';
+      this.s_campo = '';
+      
+    },
+    editar_campo(){
+      if(this.bandera_unesco == 1){
+        if(this.campo_t.trim() == ''){
+          alert("Ingrese el nombre del campo");
+        }else{
+          if(this.control_cam == 1){
+            //petición para editar
+            let array = {
+              'id': this.s_campo.id,
+              'nombre': this.campo_t
+            };
+            axios.put('update_campo',array)
+             .then(upd => {
+              alert("Campo Actualizado");
+              console.log(upd.data);
+              this.get_campos();
+              this.campo_t = '';
+              this.control_cam = 0;
+              this.s_campo = '';
+             })
+          }else{
+            //petición para guardar nuevo
+            let array2 = {
+              'nombre': this.campo_t
+            };
+           
+            axios.put('save_campo',array2)
+             .then(save => {
+              alert("Campo Registrado: ");
+              console.log(save.data);
+              this.get_campos();
+              this.campo_t = '';
+              this.control_cam = 0;
+              this.s_campo = '';
+             })
+          }
+    
+        }
+      }
+      if(this.bandera_unesco == 2){
+        console.log("edicion de disciplina");
+        if(this.control_dis == 1){
+          //petición para editar
+          let array = {
+            'id': this.s_disciplina.id,
+            'nombre': this.disciplina_t
+          };
+          axios.put('update_dis',array)
+           .then(upd => {
+            alert("Disciplina Actualizada");
+            //console.log(upd.data);
+            this.get_campos();
+           // this.llenar_disciplinas();
+            this.campo_t = '';
+            this.disciplina_t = '';
+            this.control_dis = 0;
+            this.s_campo = '';
+            this.s_disciplina = '';
+            this.disciplinas_u = '';
+           })
+        }else{
+          //petición para guardar nuevo
+          let array2 = {
+            'nombre': this.disciplina_t,
+            'id_campo': this.s_campo.id
+          };
+         
+          axios.put('save_dis',array2)
+           .then(save => {
+            alert("Disciplina Registrada");
+            //console.log(save.data);
+            this.get_campos();
+            this.campo_t = '';
+            this.disciplina_t = '';
+            this.control_dis = 0;
+            this.s_campo = '';
+            this.s_disciplina = '';
+            this.disciplinas_u = '';
+           })
+        }
+      }
+      if(this.bandera_unesco == 3){
+        console.log("edicion de subdisciplinas");
+        if(this.control_sub == 1){
+          //petición para editar
+          let array = {
+            'id': this.s_subdisciplina.id,
+            'nombre': this.subdisciplina_t
+          };
+          axios.put('update_sdis',array)
+           .then(supd => {
+            alert("Subdisciplina Actualizada");
+            //console.log(upd.data);
+            this.get_campos();
+           // this.llenar_disciplinas();
+            this.campo_t = '';
+            this.disciplina_t = '';
+            this.subdisciplina_t = '';
+            this.control_sub = 0;
+            this.s_campo = '';
+            this.s_disciplina = '';
+            this.s_subdisciplina = '';
+            this.disciplinas_u = '';
+            this.subdisciplinas_u = '';
+           })
+        }else{
+          //petición para guardar nuevo
+          let array2 = {
+            'nombre': this.subdisciplina_t,
+            'id_disciplina': this.s_disciplina.id
+          };
+         
+          axios.put('save_sdis',array2)
+           .then(save => {
+            alert("Subdisciplina Registrada");
+            //console.log(save.data);
+            this.get_campos();
+            this.campo_t = '';
+            this.disciplina_t = '';
+            this.subdisciplina_t = '';
+            this.control_sub = 0;
+            this.s_campo = '';
+            this.s_disciplina = '';
+            this.s_subdisciplina = '';
+            this.disciplinas_u = '';
+            this.subdisciplinas_u = '';
+           })
+        }
+
+
+      }
+      
+      
+    },
+    limpiar_campo(){
+      this.control_cam = 0;
+      this.control_dis = 0;
+      this.control_sub = 0;
+      this.campo_t = '';
+      this.disciplina_t = '';
+      this.subdisciplina_t = '';
+      this.s_campo = '';
+      this.s_disciplina = ''
+      this.s_subdisciplina = '';
+      this.disciplinas_u = '';
+      this.subdisciplinas_u = '';
+    },
+    get_campos(){
+      axios.get('get_campos_u')
+           .then(cam => {
+             //console.log("resultado: ", rub_eval.data);
+            this.campos_u = cam.data;
+            console.log("campos: ",this.campos_u);
+           })
+    },
+    llenar_disciplinas(){
+      this.s_disciplina = "";
+      this.s_subdisciplina = "";
+      console.log("entre a consultar disciplinas");
+      axios.get('get_disciplinas_u/'+this.s_campo.id)
+           .then(dis => {
+            console.log("peticion");
+             //console.log("resultado: ", rub_eval.data);
+            this.disciplinas_u = dis.data;
+            console.log("campos: ",this.disciplinas_u);
+            
+           })
+    },
+    llenar_disciplinas2(){
+      this.control_cam = 1;
+      this.control_dis = 0;
+      this.control_sub = 0;
+      this.campo_t = this.s_campo.nombre;
+      this.s_disciplina = "";
+      this.s_subdisciplina = "";
+      console.log("entre a consultar disciplinas");
+      axios.get('get_disciplinas_u/'+this.s_campo.id)
+           .then(dis => {
+            console.log("peticion");
+             //console.log("resultado: ", rub_eval.data);
+            this.disciplinas_u = dis.data;
+            console.log("campos: ",this.disciplinas_u);
+           })
+    },
+    
+    llenar_bandera(){
+      this.control_cam = 0;
+      this.control_dis = 0;
+      this.control_sub = 1;
+      this.subdisciplina_t = this.s_subdisciplina.nombre;
+    },
+    llenar_subdisciplinas2(){
+      this.control_cam = 0;
+      this.control_dis = 1;
+      this.control_sub = 0;
+      this.s_subdisciplina = "";
+      axios.get('get_subdisciplinas_u/'+this.s_disciplina.id)
+      .then(sub => {
+       console.log("peticion");
+        //console.log("resultado: ", rub_eval.data);
+       this.subdisciplinas_u = sub.data;
+       console.log("sub: ",this.subdisciplinas_u);
+       this.disciplina_t = this.s_disciplina.nombre;
+
+      })
+
+    },
+    llenar_subdisciplinas(){
+      this.s_subdisciplina = "";
+      axios.get('get_subdisciplinas_u/'+this.s_disciplina.id)
+      .then(sub => {
+       console.log("peticion");
+        //console.log("resultado: ", rub_eval.data);
+       this.subdisciplinas_u = sub.data;
+       console.log("sub: ",this.subdisciplinas_u);
+      })
+
+    },
+    
+    //metodo para descarga de informacion en excel
+    excel_download(){
+      console.log("funciona");  
+      /* console.log(document.getElementById("ambiente_p").children[0].children[0].children[0]);
+      console.log(document.getElementById("ambiente_d"));
+      console.log($P{usu_no_rep}); */
+      //var json=$P{usu_no_rep};
+
+  
+      testTypes = {
+            "expertos": "String",
+            "items_entre_3_y_4": "String",
+            "items_totales": "String",
+            "total": "String"
+        };
+    
+    emitXmlHeader = function () {
+        var headerRow =  '<ss:Row>\n';
+        for (var colName in testTypes) {
+            headerRow += '  <ss:Cell>\n';
+            headerRow += '    <ss:Data ss:Type="String">';
+            headerRow += colName + '</ss:Data>\n';
+            headerRow += '  </ss:Cell>\n';        
+        }
+        headerRow += '</ss:Row>\n';    
+        return '<?xml version="1.0"?>\n' +
+               '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n' +
+               '<ss:Worksheet ss:Name="Sheet1">\n' +
+               '<ss:Table>\n\n' + headerRow;
+    };
+     
+    emitXmlFooter = function() {
+        return '\n</ss:Table>\n' +
+               '</ss:Worksheet>\n' +
+               '</ss:Workbook>\n';
+    };
+    
+    jsonToSsXml = function (jsonObject) {
+        var row;
+        var col;
+        var xml;
+        var data = typeof jsonObject != "object" ? JSON.parse(jsonObject) : jsonObject;
+        
+        xml = emitXmlHeader();
+    
+        for (row = 0; row < data.length; row++) {
+            xml += '<ss:Row>\n';
+          
+            for (col in data[row]) {
+                xml += '  <ss:Cell>\n';
+                xml += '    <ss:Data ss:Type="' + testTypes[col]  + '">';
+                xml += data[row][col] + '</ss:Data>\n';
+                xml += '  </ss:Cell>\n';
+            }
+    
+            xml += '</ss:Row>\n';
+        }
+        
+        xml += emitXmlFooter();
+        return xml;  
+    };
+   
+    //console.log(jsonToSsXml(json);
+    
+    download = function (content, filename, contentType) {
+        if (!contentType) contentType = 'application/octet-stream';
+        var a = document.getElementById('test2');
+        var blob = new Blob([content], {
+            'type': contentType
+        });
+        console.log("blob", blob, " content recibido: ", content);
+        a.href = window.URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+    };
+    
+    download(jsonToSsXml(this.array_tbl_6), 'CVI_General.xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      
+    },
+
+
+    //metodos para gestor de estadisticas y calculos
+    get_rubricas_evaluadas(){
+      axios.get('get_rub_eval/'+this.getCookie('TOKEN_1'))
+           .then(rub_eval => {
+             //console.log("resultado: ", rub_eval.data);
+            this.rub_evaluadas = rub_eval.data;
+           })
+    },
+    expertos_rubrica(){
+      //console.log("seleccion: ", this.rubricas_eval.id_rubrica);
+      axios.get('get_exp_rub/'+this.rubricas_eval.id_rubrica)
+           .then(rub_exp => {
+             //console.log("resultado expertos: ", rub_exp.data);
+            this.doc_eval = rub_exp.data;
+            this.m_disabled = false;
+            //peticion 1 para traer criterios e items
+            axios.get('get_cri_rub_eval/'+this.rubricas_eval.id_rubrica)
+           .then(rub_cri => {
+             //console.log("criterios evaluados: ",rub_cri.data );
+             this.criterio_e = rub_cri.data;
+
+             //peticion para obtener los items de la rubrica
+              axios.get('get_ite_eval/'+this.rubricas_eval.id_rubrica)
+              .then(rub_ite => {
+              //console.log("items evaluados: ",rub_ite.data );
+              this.items_e = rub_ite.data;
+
+                //peticion para calificaciones de suficiencia
+                axios.get(' get_cal_suficiencia/'+this.rubricas_eval.id_rubrica)
+                  .then(suf_cal => {
+                  //console.log("suficiencia calificaciones: ",suf_cal.data );
+                  this.suficiancia_cal = suf_cal.data;
+                    
+                    //peticion para obtener las calificaciones de claridad, coherencia, etc
+                    axios.get('get_cal_generales/'+this.rubricas_eval.id_rubrica)
+                      .then(gen_cal => {
+                      //console.log("calificaciones generales: ",gen_cal.data );
+                      this.generales_cal = gen_cal.data;
+
+                        //peticion para obtener observaciones generales
+                        axios.get('get_obs_generales/'+this.rubricas_eval.id_rubrica)
+                          .then(obs_gen => {
+                         // console.log("observaciones generales: ",obs_gen.data );
+                          this.generales_obs = obs_gen.data;
+
+                          })
+
+                      })
+                  
+                  })
+
+              })
+
+           })
+      })
+    },
+    mostrar_metrica(){
+     // console.log("metrica a usar : ", this.metricas_s);
+      if(this.metricas_s.id_metrica == 1){
+        $("#docentes_eva").show();
+        $("#evaluacion_m").show();
+        $("#cvi_general").hide();
+        $("#alfa_cron").hide();
+        $("#satis_validez").hide();
+        $("#v_aiken").hide();
+        //$("#tareas_doc").hide();
+      }else if(this.metricas_s.id_metrica == 2){
+        $("#docentes_eva").hide();
+        $("#evaluacion_m").hide();
+        $("#cvi_general").show();
+        $("#alfa_cron").hide();
+        $("#satis_validez").hide();
+        $("#v_aiken").hide();
+       // $("#tareas_doc").hide();
+        //funcion para los cálculos
+
+        //validar que todos los expertos han evaluado
+        let control = 0;
+        axios.get('get_control_eva/'+this.rubricas_eval.id_rubrica)
+        .then(con => {
+         // console.log("existe: ", con.data);
+          this.control_exp = con.data;
+          if(this.control_exp == 0){
+            this.calculo_cvr();
+            
+            //$("#metricas_eva").show();
+          }else{
+            alert("Aún existen evaluaciones de expertos pendientes");
+          }
+
+
+        })
+
+        
+      }else if(this.metricas_s.id_metrica == 3){
+        this.mostrar_alfa();
+        $("#docentes_eva").hide();
+        $("#evaluacion_m").hide();
+        $("#cvi_general").hide();
+        $("#alfa_cron").show();
+        $("#satis_validez").hide();
+        $("#v_aiken").hide();
+      }else if(this.metricas_s.id_metrica == 4){
+        this.obtener_satis_valida();
+        $("#docentes_eva").hide();
+        $("#evaluacion_m").hide();
+        $("#cvi_general").hide();
+        $("#alfa_cron").hide();
+        $("#satis_validez").show();
+        $("#v_aiken").hide();
+      }else if (this.metricas_s.id_metrica == 5){
+        $("#docentes_eva").hide();
+        $("#evaluacion_m").hide();
+        $("#cvi_general").hide();
+        $("#alfa_cron").hide();
+        $("#satis_validez").hide();
+        $("#v_aiken").show();
+      }
+      /* else if(this.metricas_s.id_metrica == 3){
+        $("#docentes_eva").hide();
+        //proceso para alfa de cronbanch
+        //peticion para obtener tareas
+        axios.get('get_tar_doc/'+this.getCookie('TOKEN_1')+'/'+this.rubricas_eval.id_rubrica)
+        .then(tar =>{
+          console.log("tareas obtenidas: ", tar.data);
+          this.t_docente = tar.data;
+          $("#tareas_doc").show();
+
+      });
+
+      
+        
+      } */
+    },
+    mostrar_alfa(){
+      //peticion para obtener tareas
+      //console.log("seleccion: ", this.tareas_docente);
+      //variables para calculo de alfa
+      let cal_doc = [];
+      let cal_est = [];
+      let total_crit = this.criterio_e.length;
+      let suma_varianzas = 0; //
+      let suma_varianzas_items = 0;
+      let suma_total1 = [];
+      let promedios = [] //contiene promedios para calcular la varianza
+      let promedios2 = [] // segunda parte 
+    
+      
+      //peticiones para obtener calificaciones de docente y estudiantes
+      axios.get('get_cali_doc/'+this.rubricas_eval.id_rubrica)
+        .then(tard =>{
+          //console.log("calificaciones docente: ", tard.data);
+          cal_doc = tard.data;
+          axios.get('get_cali_est/'+this.rubricas_eval.id_rubrica)
+          .then(tare =>{
+            //console.log("calificaciones docente: ", tare.data);
+            cal_est = tare.data;
+            console.log("unidos: ", cal_doc.concat(cal_est));
+            this.calificaciones_tar = cal_doc.concat(cal_est);
+
+            this.criterio_e.forEach(cri => {
+              let cont = 0;
+              let acu = 0;
+              this.calificaciones_tar.forEach(tar => {
+                
+                if(tar.id_criterio == cri.id_criterio){
+                 /*  if(cri.id_criterio == 74){
+                    console.log("evaluador:",tar.id_evaluador," asignado: ",tar.id_asignado ," criterio: ", cri.id_criterio, " valor: ", tar.valoracion);
+                  }
+                   */
+                  acu = acu + tar.valoracion;
+                  cont = cont + 1;
+                }
+              
+              });
+              let pro = acu/cont;
+              console.log("criterio: ", cri.id_criterio, " promedio: ", pro);
+              promedios.push({"id_criterio": cri.id_criterio,"nombre":cri.nombre, "promedio": pro.toFixed(2), "varianza":''});
+            });
+            console.log("promedios: ", promedios);
+            promedios.forEach(pro => {
+              let cont2 = 0;
+              let acu2 = 0;
+              this.calificaciones_tar.forEach(tar2 => {
+                if(tar2.id_criterio == pro.id_criterio){
+                  //resta
+                  acu2 = acu2 + Math.pow((tar2.valoracion - pro.promedio),2);
+                  cont2 = cont2 + 1;
+                }
+                
+              });
+              let pro2 = acu2/cont2;
+              promedios2.push({"id_criterio": pro.id_criterio, "promedio": pro2}) 
+              
+            });
+            console.log("varianza: ", promedios2);
+            //suma de varianzas 
+            promedios2.forEach(pro3 => {
+              suma_varianzas = suma_varianzas + pro3.promedio;
+            });
+            console.log("suma varianzas: ", suma_varianzas);
+            //preparar data para tabla de alfa
+            this.tbl_alfa = promedios
+            this.tbl_alfa .forEach(prome => {
+              promedios2.forEach(prome2 => {
+                if(prome.id_criterio == prome2.id_criterio){
+                  prome.varianza = prome2.promedio.toFixed(2);
+                }
+              });
+            });
+            console.log("para table alfa : ", this.tbl_alfa);
+
+            //varianza de la suma de los items(criterios)
+           //peticion para traer la suma de los totales desde base
+           axios.get('get_totale/'+this.rubricas_eval.id_rubrica)
+           .then(t_e =>{
+              axios.get('get_totald/'+this.rubricas_eval.id_rubrica)
+              .then(t_d =>{
+                 console.log("suma total por evaluador y asignado ", t_e.data.concat(t_d.data));
+                 suma_total1 =  t_e.data.concat(t_d.data);
+                 let promedio_t = 0;
+                 let cont3 = 0
+                 let acu3 = 0;
+                 suma_total1.forEach(s_t => {
+                  acu3 = acu3 + s_t.suma;
+                  cont3 = cont3 + 1;
+                   
+                 });
+                 promedio_t = acu3/cont3;
+                 //calculo de la varianza del las suma totales:
+                 let cont4 = 0;
+                 let acu4 = 0;
+                 suma_total1.forEach(s_2 => {
+                      //resta
+                      acu4 = acu4 + Math.pow((s_2.suma - promedio_t),2);
+                      cont4 = cont4 + 1;
+                });
+                suma_varianzas_items = acu4/cont4;
+                console.log("suma de varianza de los items: ", suma_varianzas_items);
+
+                //calculo de alfa final
+                this.alfa_c = (total_crit/(total_crit-1))*(1-(suma_varianzas/suma_varianzas_items));
+                this.alfa_c = this.alfa_c.toFixed(4);
+                console.log("alfa_final: ", this.alfa_c);
+                
+              })
+           })
+            
+
+
+            
+        });
+      });
+
+      
+    },
+    obtener_satis_valida(){
+      //obtener preguntas
+      let preguntas = [];
+      let total_estu = 0;
+      axios.get('get_total_est/'+this.rubricas_eval.id_rubrica)
+      .then(tot =>{
+        total_estu = tot.data;
+        console.log("total estudintes: ", total_estu);
+        axios.get('get_cue_pre/'+this.rubricas_eval.id_rubrica)
+        .then(pre =>{
+          preguntas = pre.data;
+          axios.get('get_calif_satis_vali/'+this.rubricas_eval.id_rubrica)
+          .then(satis => {
+           // console.log("calificaciones saits...: ", satis.data)
+                this.cal_satis_vali = satis.data;
+                //let total_est = this.cal_satis_vali.length;
+                //let valores_s = [0,0,0,0,0]
+                /* let valor_1_s = 0;
+                let valor_2_s = 0;
+                let valor_3_s = 0;
+                let valor_4_s = 0;
+                let valor_5_s = 0; */
+                preguntas.forEach(pre1 => {
+                  
+                  let temp5 = {
+                    'id_tipo': pre1.tipo,
+                    'id_pregunta': pre1.id,
+                    'pregunta': pre1.pregunta,
+                    'level_1': 0,
+                    'level_2': 0,
+                    'level_3': 0,
+                    'level_4': 0,
+                    'level_5': 0,
+                    'por_l_1': 0,
+                    'por_l_2': 0,
+                    'por_l_3': 0,
+                    'por_l_4': 0,
+                    'por_l_5': 0
+                  }
+                  if(pre1.tipo == 1){
+                    this.cue_cal_niv_1.push(temp5);
+                  }
+                  if(pre1.tipo == 2){
+                    this.cue_cal_niv_2.push(temp5);
+                  }
+                  
+                });
+              //  console.log("cuestionario enc cascara: ", this.cue_cal_niv_1, ' ',this.cue_cal_niv_2);
+    
+                this.cue_cal_niv_1.forEach(sat_val => {
+                  this.cal_satis_vali.forEach(cali => {
+                    if(cali.id_pregunta == sat_val.id_pregunta){
+                      if(cali.calificacion == 1 && cali.tipo == 1){
+                        sat_val.level_1 = sat_val.level_1 + 1;
+                      }
+                      if(cali.calificacion == 2 && cali.tipo == 1){
+                        sat_val.level_2 = sat_val.level_2 + 1;
+                      }
+                      if(cali.calificacion == 3 && cali.tipo == 1){
+                        sat_val.level_3 = sat_val.level_3 + 1;
+                      }
+                      if(cali.calificacion == 4 && cali.tipo == 1){
+                        sat_val.level_4 = sat_val.level_4 + 1;
+                      }
+                      if(cali.calificacion == 5 && cali.tipo == 1){
+                        sat_val.level_5 = sat_val.level_5 + 1;
+                      }
+                    }
+                    
+                  });
+                });
+                this.cue_cal_niv_2.forEach(sat_val2 => {
+                  this.cal_satis_vali.forEach(cali2 => {
+                   // console.log("pregunta cue_cal: ", sat_val2.id_pregunta ," pregunta cali: ",cali2.id_pregunta, " tipo: ", cali2.id_tipo);
+                    if(cali2.id_pregunta == sat_val2.id_pregunta){
+                      if(cali2.calificacion == 1 && cali2.tipo == 2){
+                        sat_val2.level_1 = sat_val2.level_1 + 1;
+                      }
+                      if(cali2.calificacion == 2 && cali2.tipo == 2){
+                        sat_val2.level_2 = sat_val2.level_2 + 1;
+                      }
+                      if(cali2.calificacion == 3 && cali2.tipo == 2){
+                        sat_val2.level_3 = sat_val2.level_3 + 1;
+                      }
+                      if(cali2.calificacion == 4 && cali2.tipo == 2){
+                        sat_val2.level_4 = sat_val2.level_4 + 1;
+                      }
+                      if(cali2.calificacion == 5 && cali2.tipo == 2){
+                        sat_val2.level_5 = sat_val2.level_5 + 1;
+                      }
+                    }
+                    
+                  });
+                });
+               // console.log("cuestionario con calificaciones sumadas: ", this.cue_cal_niv_1,' ', this.cue_cal_niv_2);
+
+                //ciclos para calcular porcentajes
+                this.cue_cal_niv_1.forEach(cue1 => {
+                  cue1.por_l_1 = (cue1.level_1 / total_estu ) * 100;
+                  cue1.por_l_2 = (cue1.level_2 / total_estu ) * 100;
+                  cue1.por_l_3 = (cue1.level_3 / total_estu ) * 100;
+                  cue1.por_l_4 = (cue1.level_4 / total_estu ) * 100;
+                  cue1.por_l_5 = (cue1.level_5 / total_estu ) * 100;
+                });
+                this.cue_cal_niv_2.forEach(cue2 => {
+                  cue2.por_l_1 = (cue2.level_1 / total_estu ) * 100;
+                  cue2.por_l_2 = (cue2.level_2 / total_estu ) * 100;
+                  cue2.por_l_3 = (cue2.level_3 / total_estu ) * 100;
+                  cue2.por_l_4 = (cue2.level_4 / total_estu ) * 100;
+                  cue2.por_l_5 = (cue2.level_5 / total_estu ) * 100;
+                });
+              //  console.log("despues de ciclo para porcentajes: ", this.cue_cal_niv_1);
+                //ciclos para sumas de porcentajes por nivel
+                let temp6 = {
+                  'sum_l_1':0,
+                  'sum_l_2':0,
+                  'sum_l_3':0,
+                  'sum_l_4':0,
+                  'sum_l_5':0
+                };
+                this.cue1_suma_niv.push(temp6);
+                let temp7 = {
+                  'sum_l_1':0,
+                  'sum_l_2':0,
+                  'sum_l_3':0,
+                  'sum_l_4':0,
+                  'sum_l_5':0
+                };
+                this.cue2_suma_niv.push(temp7);
+                this.cue_cal_niv_1.forEach(cue3 => {
+                  this.cue1_suma_niv[0].sum_l_1 = this.cue1_suma_niv[0].sum_l_1 + cue3.level_1;
+                  this.cue1_suma_niv[0].sum_l_2 = this.cue1_suma_niv[0].sum_l_2 + cue3.level_2;
+                  this.cue1_suma_niv[0].sum_l_3 = this.cue1_suma_niv[0].sum_l_3 + cue3.level_3;
+                  this.cue1_suma_niv[0].sum_l_4 = this.cue1_suma_niv[0].sum_l_4 + cue3.level_4;
+                  this.cue1_suma_niv[0].sum_l_5 = this.cue1_suma_niv[0].sum_l_5 + cue3.level_5;
+                });
+                this.cue_cal_niv_2.forEach(cue4 => {
+                  this.cue2_suma_niv[0].sum_l_1 = this.cue2_suma_niv[0].sum_l_1 + cue4.level_1;
+                  this.cue2_suma_niv[0].sum_l_2 = this.cue2_suma_niv[0].sum_l_2 + cue4.level_2;
+                  this.cue2_suma_niv[0].sum_l_3 = this.cue2_suma_niv[0].sum_l_3 + cue4.level_3;
+                  this.cue2_suma_niv[0].sum_l_4 = this.cue2_suma_niv[0].sum_l_4 + cue4.level_4;
+                  this.cue2_suma_niv[0].sum_l_5 = this.cue2_suma_niv[0].sum_l_5 + cue4.level_5;
+                });
+              // console.log("porcentajes sumados: ", this.cue1_suma_niv, " ", this.cue2_suma_niv);
+                //obtener tabla de frecuencia porcentaje y porcentaje acumulado
+                let long_cue1 = this.cue_cal_niv_1.length;
+                let long_cue2 = this.cue_cal_niv_2.length;
+                this.cue1_suma_niv.forEach(sum => {
+                  this.tbl_fre_pro_1[0].frecuencia = sum.sum_l_1 / long_cue1;
+                  this.tbl_fre_pro_1[0].frecuencia = this.tbl_fre_pro_1[0].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_1[1].frecuencia = sum.sum_l_2 / long_cue1;
+                  this.tbl_fre_pro_1[1].frecuencia = this.tbl_fre_pro_1[1].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_1[2].frecuencia = sum.sum_l_3 / long_cue1;
+                  this.tbl_fre_pro_1[2].frecuencia = this.tbl_fre_pro_1[2].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_1[3].frecuencia = sum.sum_l_4 / long_cue1;
+                  this.tbl_fre_pro_1[3].frecuencia = this.tbl_fre_pro_1[3].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_1[4].frecuencia = sum.sum_l_5 / long_cue1;
+                  this.tbl_fre_pro_1[4].frecuencia = this.tbl_fre_pro_1[4].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_1[5].frecuencia = (sum.sum_l_1 / long_cue1)+(sum.sum_l_2 / long_cue1)+(sum.sum_l_3 / long_cue1)+(sum.sum_l_4 / long_cue1)+(sum.sum_l_5 / long_cue1);
+                  
+                  this.tbl_fre_pro_1[0].porcentaje = sum.sum_l_1 *100/ (long_cue1 * total_estu);
+                  this.tbl_fre_pro_1[0].porcentaje = parseFloat(this.tbl_fre_pro_1[0].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_1[1].porcentaje = sum.sum_l_2 *100/ (long_cue1 * total_estu);
+                  this.tbl_fre_pro_1[1].porcentaje = parseFloat(this.tbl_fre_pro_1[1].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_1[2].porcentaje = sum.sum_l_3 *100/ (long_cue1 * total_estu);
+                  this.tbl_fre_pro_1[2].porcentaje = parseFloat(this.tbl_fre_pro_1[2].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_1[3].porcentaje = sum.sum_l_4 *100/ (long_cue1 * total_estu);
+                  this.tbl_fre_pro_1[3].porcentaje = parseFloat(this.tbl_fre_pro_1[3].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_1[4].porcentaje = sum.sum_l_5 *100/ (long_cue1 * total_estu);
+                  this.tbl_fre_pro_1[4].porcentaje = parseFloat(this.tbl_fre_pro_1[4].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_1[5].porcentaje = 100; // quemado por el momento
+
+                  this.tbl_fre_pro_1[0].porcentaje_a = this.tbl_fre_pro_1[0].porcentaje;
+                  this.tbl_fre_pro_1[1].porcentaje_a = this.tbl_fre_pro_1[0].porcentaje + this.tbl_fre_pro_1[1].porcentaje;
+                  this.tbl_fre_pro_1[2].porcentaje_a = this.tbl_fre_pro_1[0].porcentaje + this.tbl_fre_pro_1[1].porcentaje + this.tbl_fre_pro_1[2].porcentaje;
+                  this.tbl_fre_pro_1[3].porcentaje_a = this.tbl_fre_pro_1[0].porcentaje + this.tbl_fre_pro_1[1].porcentaje + this.tbl_fre_pro_1[2].porcentaje + this.tbl_fre_pro_1[3].porcentaje;
+                  this.tbl_fre_pro_1[4].porcentaje_a = this.tbl_fre_pro_1[0].porcentaje + this.tbl_fre_pro_1[1].porcentaje + this.tbl_fre_pro_1[2].porcentaje + this.tbl_fre_pro_1[3].porcentaje + this.tbl_fre_pro_1[4].porcentaje;
+                  this.tbl_fre_pro_1[0].porcentaje_a = this.tbl_fre_pro_1[0].porcentaje_a.toFixed(2);
+                  this.tbl_fre_pro_1[1].porcentaje_a = this.tbl_fre_pro_1[1].porcentaje_a.toFixed(2);
+                  this.tbl_fre_pro_1[2].porcentaje_a = this.tbl_fre_pro_1[2].porcentaje_a.toFixed(2);
+                  this.tbl_fre_pro_1[3].porcentaje_a = this.tbl_fre_pro_1[3].porcentaje_a.toFixed(2);
+                });
+               // console.log("tabla1: ", this.tbl_fre_pro_1);
+                this.cue2_suma_niv.forEach(sum2=> {
+                  this.tbl_fre_pro_2[0].frecuencia = sum2.sum_l_1 / long_cue2;
+                  this.tbl_fre_pro_2[0].frecuencia = this.tbl_fre_pro_2[0].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_2[1].frecuencia = sum2.sum_l_2 / long_cue2;
+                  this.tbl_fre_pro_2[1].frecuencia = this.tbl_fre_pro_2[1].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_2[2].frecuencia = sum2.sum_l_3 / long_cue2;
+                  this.tbl_fre_pro_2[2].frecuencia = this.tbl_fre_pro_2[2].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_2[3].frecuencia = sum2.sum_l_4 / long_cue2;
+                  this.tbl_fre_pro_2[3].frecuencia = this.tbl_fre_pro_2[3].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_2[4].frecuencia = sum2.sum_l_5 / long_cue2;
+                  this.tbl_fre_pro_2[4].frecuencia = this.tbl_fre_pro_2[4].frecuencia.toFixed(2);
+                  this.tbl_fre_pro_2[5].frecuencia = (sum2.sum_l_1 / long_cue2)+(sum2.sum_l_2 / long_cue2)+(sum2.sum_l_3 / long_cue2)+(sum2.sum_l_4 / long_cue2)+(sum2.sum_l_5 / long_cue2);
+
+                  this.tbl_fre_pro_2[0].porcentaje = sum2.sum_l_1 *100/ (long_cue2 * total_estu);
+                  this.tbl_fre_pro_2[0].porcentaje = parseFloat(this.tbl_fre_pro_2[0].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_2[1].porcentaje = sum2.sum_l_2 *100/ (long_cue2 * total_estu);
+                  this.tbl_fre_pro_2[1].porcentaje = parseFloat(this.tbl_fre_pro_2[1].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_2[2].porcentaje = sum2.sum_l_3 *100/ (long_cue2 * total_estu);
+                  this.tbl_fre_pro_2[2].porcentaje = parseFloat(this.tbl_fre_pro_2[2].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_2[3].porcentaje = sum2.sum_l_4 *100/ (long_cue2 * total_estu);
+                  this.tbl_fre_pro_2[3].porcentaje = parseFloat(this.tbl_fre_pro_2[3].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_2[4].porcentaje = sum2.sum_l_5 *100/ (long_cue2 * total_estu);
+                  this.tbl_fre_pro_2[4].porcentaje = parseFloat(this.tbl_fre_pro_2[4].porcentaje.toFixed(2)); 
+                  this.tbl_fre_pro_2[5].porcentaje = 100; //quemado momentaneamente
+
+                  this.tbl_fre_pro_2[0].porcentaje_a = this.tbl_fre_pro_2[0].porcentaje;
+                  this.tbl_fre_pro_2[1].porcentaje_a = this.tbl_fre_pro_2[0].porcentaje + this.tbl_fre_pro_2[1].porcentaje;
+                  this.tbl_fre_pro_2[2].porcentaje_a = this.tbl_fre_pro_2[0].porcentaje + this.tbl_fre_pro_2[1].porcentaje + this.tbl_fre_pro_2[2].porcentaje;
+                  this.tbl_fre_pro_2[3].porcentaje_a = this.tbl_fre_pro_2[0].porcentaje + this.tbl_fre_pro_2[1].porcentaje + this.tbl_fre_pro_2[2].porcentaje + this.tbl_fre_pro_2[3].porcentaje;
+                  this.tbl_fre_pro_2[4].porcentaje_a = this.tbl_fre_pro_2[0].porcentaje + this.tbl_fre_pro_2[1].porcentaje + this.tbl_fre_pro_2[2].porcentaje + this.tbl_fre_pro_2[3].porcentaje + this.tbl_fre_pro_2[4].porcentaje;
+                  this.tbl_fre_pro_2[0].porcentaje_a = this.tbl_fre_pro_2[0].porcentaje_a.toFixed(2);
+                  this.tbl_fre_pro_2[1].porcentaje_a = this.tbl_fre_pro_2[1].porcentaje_a.toFixed(2);
+                  this.tbl_fre_pro_2[2].porcentaje_a = this.tbl_fre_pro_2[2].porcentaje_a.toFixed(2);
+                  this.tbl_fre_pro_2[3].porcentaje_a = this.tbl_fre_pro_2[3].porcentaje_a.toFixed(2);
+                });
+                //calcular valor de porcentaje obtenido de los dos niveles mas altos 
+                //validez 9 preguntas, satisfaccion 10
+                this.satis_vali = (parseInt(this.tbl_fre_pro_2[3].porcentaje) + parseInt(this.tbl_fre_pro_2[4].porcentaje) + parseInt(this.tbl_fre_pro_1[3].porcentaje) + parseInt(this.tbl_fre_pro_1[4].porcentaje))/2;
+                //console.log("satisfaccion y validez final: ", this.satis_vali);
+
+                //calculo de la v de aiken
+
+
+                
+            })
+        })
+
+      })
+      
+      
+    },
+    calculo_cvr(){
+   
+        this.array_tbl_6 = []
+      //nueva para calculos por agrupacion de expertos
+      //expander suficiencia a cada item
+      let suficiancia_cal2 = [];
+      this.items_e.forEach(items2 => {
+        this.suficiancia_cal.forEach(sufi => {
+          if(items2.id_criterio == sufi.id_criterio){
+          suficiancia_cal2.push({"id_experto": sufi.id_experto,"id_item": items2.id_item, "suficiencia": sufi.suficiencia})
+          }
+        });
+      })
+
+      //console.log("nueva suficiencia: ", suficiancia_cal2);
+      //añadir a calificaciones generales la suficiencia 
+      this.generales_cal.forEach(cal_gen_1 => {
+        suficiancia_cal2.forEach(cal_suf_1 => {
+          if(cal_gen_1.id_experto == cal_suf_1.id_experto && cal_gen_1.id_item == cal_suf_1.id_item){
+            cal_gen_1.suficiencia = cal_suf_1.suficiencia
+          }
+          
+        });
+      });
+      console.log("general completo: ", this.generales_cal);
+      //ciclo sobre expertos
+      let expertos_1 = [];
+      this.doc_eval.forEach(expertos => {
+        let temp = [
+          {"id_experto":expertos.id_experto},
+          {"nombres":expertos.nombres},
+          {"evaluaciones":[]},
+          {"total":0},
+          {"CVI":0}
+        ];
+        expertos_1.push(temp);
+      });
+      //console.log("general por experto: ", expertos_1);
+
+      //ciclo para añadir calificaciones por expertos
+      this.generales_cal.forEach(add => {
+        expertos_1.forEach(exp => {
+          if(exp[0].id_experto == add.id_experto){
+            //console.log(add, ' ',exp);
+            let temp2 = {
+              'id_criterio': add.id_criterio,
+              'id_item': add.id_item,
+              'coherencia': add.coherencia,
+              'observacion': add.observacion,
+              'relevancia': add.relevancia,
+              'suficiencia': add.suficiencia,
+              'claridad': add.claridad,
+            };
+            //console.log("temp2: " , temp2);
+            exp[2].evaluaciones.push(temp2);
+          }
+        });
+      });
+        //console.log("expertos + evaluaciones: ", expertos_1);
+        // 
+        let total_ICV_G = 0;
+        expertos_1.forEach(expe => {
+          let temp_e = 0;
+          
+          //let nombre_e = '';
+          expe[2].evaluaciones.forEach(eva2 => {
+            let temp8 = 0;
+            let total = 0;
+            if(parseInt(eva2.claridad) >= 3){
+              temp8 = temp8 + 1;
+            }
+            if(parseInt(eva2.coherencia) >= 3){
+              temp8 = temp8 + 1;
+            }
+            if(parseInt(eva2.suficiencia) >= 3){
+              temp8 = temp8 + 1;
+            }
+            if(parseInt(eva2.relevancia) >= 3){
+              temp8 = temp8 + 1;
+            }
+            total = temp8 / 4;
+            temp_e = temp_e + total;
+          })
+          let temp_a = {'expertos': expe[1].nombres, 'items_entre_3_y_4': temp_e, 'items_totales': this.items_e.length, 'total': temp_e/this.items_e.length};
+          this.array_tbl_6.push(temp_a);
+          total_ICV_G = total_ICV_G + (temp_e/this.items_e.length);
+        });
+         this.ICV_G2 = total_ICV_G.toFixed(2)/this.doc_eval.length;
+         this.ICV_G2 = this.ICV_G2.toFixed(2);
+        //console.log("para tabla 6: ", this.array_tbl_6, 'total ICV_G: ', this.ICV_G2);
+
+        //agrupacion por categorias
+        let suficiencia_1 =[];
+        let coherencia_1 =[];
+        let relevancia_1 =[];
+        let claridad_1 =[];
+        this.generales_cal.forEach(cali3 => {
+          let temp_s = {"suficiencia": cali3.suficiencia, "id_item":cali3.id_item, "id_criterio": cali3.id_criterio, "id_experto": cali3.id_experto};
+          let temp_co = {"coherencia": cali3.coherencia, "id_item":cali3.id_item, "id_criterio": cali3.id_criterio, "id_experto": cali3.id_experto};
+          let temp_r = {"relevancia": cali3.relevancia, "id_item":cali3.id_item, "id_criterio": cali3.id_criterio, "id_experto": cali3.id_experto};
+          let temp_cl = {"claridad": cali3.claridad, "id_item":cali3.id_item, "id_criterio": cali3.id_criterio, "id_experto": cali3.id_experto};
+          suficiencia_1.push(temp_s);
+          coherencia_1.push(temp_co);
+          relevancia_1.push(temp_r);
+          claridad_1.push(temp_cl);
+        });
+        //convertir valores en porcentajes
+        for (let i = 0; i < suficiencia_1.length; i++) {
+          if(parseInt(suficiencia_1[i].suficiencia)==2){
+            suficiencia_1[i].suficiencia = 1 / 3
+          }else if(parseInt(suficiencia_1[i].suficiencia)==3){
+            suficiencia_1[i].suficiencia = (1 / 3)*2
+          }else if(parseInt(suficiencia_1[i].suficiencia)==4){
+            suficiencia_1[i].suficiencia = (1 / 3)*3
+          }else if(parseInt(suficiencia_1[i].suficiencia)==1){
+            suficiencia_1[i].suficiencia = 0;
+          }
+        }
+        for (let i = 0; i < coherencia_1.length; i++) {
+          if(parseInt(coherencia_1[i].coherencia)==2){
+            coherencia_1[i].coherencia = 1 / 3
+          }else if(parseInt(coherencia_1[i].coherencia)==3){
+            coherencia_1[i].coherencia = (1 / 3)*2
+          }else if(parseInt(coherencia_1[i].coherencia)==4){
+            coherencia_1[i].coherencia = (1 / 3)*3
+          }else if(parseInt(coherencia_1[i].coherencia)==1){
+            coherencia_1[i].coherencia = 0;
+          }
+        }
+        for (let i = 0; i < relevancia_1.length; i++) {
+          if(parseInt(relevancia_1[i].relevancia)==2){
+            relevancia_1[i].relevancia = 1 / 3
+          }else if(parseInt(relevancia_1[i].relevancia)==3){
+            relevancia_1[i].relevancia = (1 / 3)*2
+          }else if(parseInt(relevancia_1[i].relevancia)==4){
+            relevancia_1[i].relevancia = (1 / 3)*3
+          }else if(parseInt(relevancia_1[i].relevancia)==1){
+            console.log("entre aqui: ", relevancia_1[1])
+            relevancia_1[i].relevancia = 0;
+          }
+        }
+        console.log("relevancia 1: ", relevancia_1);
+
+        for (let i = 0; i < claridad_1.length; i++) {
+          if(parseInt(claridad_1[i].claridad)==2){
+            claridad_1[i].claridad = 1 / 3
+          }else if(parseInt(claridad_1[i].claridad)==3){
+            claridad_1[i].claridad = (1 / 3)*2
+          }else if(parseInt(claridad_1[i].claridad)==4){
+            claridad_1[i].claridad = (1 / 3)*3
+          }else if(parseInt(claridad_1[i].claridad)==1){
+            claridad_1[i].claridad = 0;
+          }
+        }
+        //suma de valores obtenidos por items
+        let suficiencia_s =[];
+        let coherencia_s =[];
+        let relevancia_s =[];
+        let claridad_s =[];
+        //console.log("antes de sumar: ", suficiencia_1)
+        this.items_e.forEach(ite_e => {
+          let acu = 0;
+          let conteo = 0;
+          let temp = {};
+          suficiencia_1.forEach(s_1 => {
+            if(s_1.id_item == ite_e.id_item){
+              acu = acu + s_1.suficiencia;
+              conteo = conteo + 1;
+            }
+          });
+          if(conteo == this.doc_eval.length){
+            temp = {"id_item": ite_e.id_item, "id_criterio": ite_e.id_criterio, "suma": acu/conteo}
+            suficiencia_s.push(temp);
+          }
+
+          acu = 0;
+          conteo = 0;
+          temp = {}
+          coherencia_1.forEach(c_1 => {
+            if(c_1.id_item == ite_e.id_item){
+              acu = acu + c_1.coherencia;
+              conteo = conteo + 1;
+            }
+          });
+          if(conteo == this.doc_eval.length){
+            temp = {"id_item": ite_e.id_item, "id_criterio": ite_e.id_criterio, "suma": acu/conteo}
+            coherencia_s.push(temp);
+          }
+
+          acu = 0;
+          conteo = 0;
+          temp = {}
+         
+          relevancia_1.forEach(r_1 => {
+            if(r_1.id_item == ite_e.id_item){
+              acu = acu + r_1.relevancia;
+              conteo = conteo + 1;
+            }
+          });
+          if(conteo == this.doc_eval.length){
+            temp = {"id_item": ite_e.id_item, "id_criterio": ite_e.id_criterio, "suma": acu/conteo}
+            relevancia_s.push(temp);
+          }
+
+          acu = 0;
+          conteo = 0;
+          temp = {}
+          claridad_1.forEach(cl_1 => {
+            if(cl_1.id_item == ite_e.id_item){
+              acu = acu + cl_1.claridad;
+              conteo = conteo + 1;
+            }
+          });
+          if(conteo == this.doc_eval.length){
+            temp = {"id_item": ite_e.id_item, "id_criterio": ite_e.id_criterio, "suma": acu/conteo}
+            claridad_s.push(temp);
+          }
+        });
+        console.log("relevancia s: ", relevancia_s);
+        //preparar array para tabla de v aiken
+        this.criterio_e.forEach(crite =>{
+          let temp = {"id_criterio":crite.id_criterio,"nombre": crite.nombre, "suficiencia": 0, "coherencia": 0, "relevancia":0, "claridad":0,"total": 0};
+          this.tbl_v_aiken.push(temp);
+        })
+        //suma y promedio por criterio
+
+        this.tbl_v_aiken.forEach(cri_1 =>{
+          let acu2 = 0;
+          let conteo2 = 0;
+          suficiencia_s.forEach(val_2 => {
+            if(val_2.id_criterio == cri_1.id_criterio){
+              acu2 = acu2 + val_2.suma;
+              conteo2 = conteo2 + 1
+            }
+          });
+          cri_1.suficiencia = acu2/conteo2;
+          
+
+          acu2 = 0;
+          conteo2 = 0;
+          coherencia_s.forEach(val_3 => {
+            if(val_3.id_criterio == cri_1.id_criterio){
+              acu2 = acu2 + val_3.suma;
+              conteo2 = conteo2 + 1
+            }
+          });
+          cri_1.coherencia = acu2/conteo2;
+          
+
+          acu2 = 0;
+          conteo2 = 0;
+          relevancia_s.forEach(val_4 => {
+            if(val_4.id_criterio == cri_1.id_criterio){
+              acu2 = acu2 + val_4.suma;
+              conteo2 = conteo2 + 1
+            }
+          });
+          cri_1.relevancia = acu2/conteo2;
+          
+
+          acu2 = 0;
+          conteo2 = 0;
+          claridad_s.forEach(val_4 => {
+            if(val_4.id_criterio == cri_1.id_criterio){
+              acu2 = acu2 + val_4.suma;
+              conteo2 = conteo2 + 1
+            }
+          });
+          cri_1.claridad = acu2/conteo2;
+          
+
+          cri_1.total =  (cri_1.suficiencia + cri_1.coherencia + cri_1.relevancia + cri_1.claridad)/4;
+
+          cri_1.suficiencia = cri_1.suficiencia.toFixed(2);
+          cri_1.coherencia = cri_1.coherencia.toFixed(2);
+          cri_1.relevancia = cri_1.relevancia.toFixed(2);
+          cri_1.claridad = cri_1.claridad.toFixed(2);
+          cri_1.total = cri_1.total.toFixed(2);
+          
+        });
+        //total parte final v de aiken
+        let cont_s = 0;
+        let cont_co = 0;
+        let cont_r = 0;
+        let cont_cl = 0;
+        let cont_t = 0;
+        this.tbl_v_aiken.forEach(aiken_2 => {
+          cont_s = cont_s + parseFloat(aiken_2.suficiencia);
+          cont_co = cont_co + parseFloat(aiken_2.coherencia);
+          cont_r = cont_r + parseFloat(aiken_2.relevancia);
+          cont_cl = cont_cl + parseFloat(aiken_2.claridad);
+          cont_t = cont_t + parseFloat(aiken_2.total);
+        });
+        this.tr_v_aiken_f[0].suficiencia = (cont_s / this.criterio_e.length).toFixed(2);
+        this.tr_v_aiken_f[0].coherencia = (cont_co / this.criterio_e.length).toFixed(2);
+        this.tr_v_aiken_f[0].relevancia = (cont_r / this.criterio_e.length).toFixed(2);
+        this.tr_v_aiken_f[0].claridad = (cont_cl / this.criterio_e.length).toFixed(2);
+        this.tr_v_aiken_f[0].total = (cont_t / this.criterio_e.length).toFixed(2);
+
+        
+        //console.log("tabla v aiken: ", this.tbl_v_aiken);
+        //calculo de alfa de cronbanch
+
+
+
+        //contar cantidad de items con valores entre 3 y 4
+/*  //calculo comentado por el de arriba que es el de la tabla 6
+        expertos_1.forEach(expe => {
+          let temp3 = 0;
+
+          for(var i = 0; i<expe[2].evaluaciones.length; i++){
+            //console.log("valor claridad: ", parseInt(expe[2].evaluaciones[i].claridad));
+            if(parseInt(expe[2].evaluaciones[i].claridad) >= 3){
+              expe[3].total = expe[3].total + 1;
+            }
+            if(parseInt(expe[2].evaluaciones[i].coherencia) >= 3){
+              expe[3].total = expe[3].total + 1;
+            }
+            if(parseInt(expe[2].evaluaciones[i].relevancia) >= 3){
+              expe[3].total = expe[3].total + 1;
+            }
+            if(parseInt(expe[2].evaluaciones[i].suficiencia) >= 3){
+              expe[3].total = expe[3].total + 1;
+            }
+          }
+        });
+      console.log("total 3 y 4 por experto e item: ", expertos_1);
+      //total items x categorias
+      let total_items = this.items_e.length * 4;
+      console.log("total a multiplicar: ", total_items);
+      //calculo de CVI por experto:
+      expertos_1.forEach(calc => {
+        calc[4].CVI = calc[3].total /total_items;
+      });
+      console.log("CVI por experto calculado: ", expertos_1);
+      //calculo de CVI general este valor se guarda en base
+      let acu = 0;
+      expertos_1.forEach(cvi_g => {
+        acu = acu + cvi_g[4].CVI;
+      });
+
+      this.cvi_general = acu / this.doc_eval.length;
+
+      console.log("CVI GENERAL FINAL: ", this.cvi_general);*/
+
+
+/* //este calculo se hizo tomando como ejemplo la pestaña CVS del documento excel
+      let claridad_v =[];
+      let coherencia_v =[];
+      let relevancia_v =[];
+      let suficiencia_v = [];
+
+      
+
+      this.items_e.forEach(items => {
+        this.generales_cal.forEach(cal_gen => {
+          if(items.id_item == cal_gen.id_item){
+            let temp = 0;
+
+            if(parseInt(cal_gen.claridad) >= 3){
+              temp = 1;
+            }else{
+              temp = 0;
+            }
+            claridad_v.push({"calificacion":temp, "id_experto": cal_gen.id_experto, "id_item": cal_gen.id_item });
+            
+            if(parseInt(cal_gen.coherencia) >= 3){
+              temp = 1;
+            }else{
+              temp = 0;
+            }
+            coherencia_v.push({"calificacion":temp, "id_experto": cal_gen.id_experto, "id_item": cal_gen.id_item });
+
+            if(parseInt(cal_gen.relevancia) >= 3){
+              temp = 1;
+            }else{
+              temp = 0;
+            }
+            relevancia_v.push({"calificacion":temp, "id_experto": cal_gen.id_experto, "id_item": cal_gen.id_item });
+
+          }
+        });
+
+        suficiancia_cal2.forEach(sufi2 => {
+          if(items.id_item == sufi2.id_item){
+            let temp_s = 0;
+            if(parseInt(sufi2.suficiencia) >= 3){
+              temp_s = 1;
+            }else{
+              temp_s = 0;
+            }
+            suficiencia_v.push({"calificacion":temp_s, "id_experto": sufi2.id_experto, "id_item": sufi2.id_item });
+            
+          }
+          
+        });
+        console.log("suficiencia_v ", suficiencia_v);
+        //parte para suficiencia
+        
+      });
+      
+      
+
+      //ciclo a items para obtener 1 cvr por categoria e item
+      let claridad_cvr_cvi = [];
+      let coherencia_cvr_cvi = [];
+      let relevancia_cvr_cvi = [];
+      let suficiencia_cvr_cvi = [];
+      let t_expertos = this.doc_eval.length/2;
+      let t_expertos_cvi = this.doc_eval.length;
+      this.items_e.forEach(ite_c => {
+        let total = 0;
+        claridad_v.forEach(cla => {
+          if(cla.id_item == ite_c.id_item){
+            if(cla.calificacion == 1){
+              total = total + 1;
+            }
+          }
+          
+        });
+        //console.log("total: ", total, " t_expertos(N/2): ",t_expertos);
+        let calculo = (total - t_expertos)/t_expertos;
+        let calculo_cvi = total / t_expertos_cvi;
+        claridad_cvr_cvi.push({"id_item": ite_c.id_item, "cvr": calculo, "cvi": calculo_cvi});
+
+        let total2 = 0;
+        coherencia_v.forEach(cohe => {
+          if(cohe.id_item == ite_c.id_item){
+            if(cohe.calificacion == 1){
+              total2 = total2 + 1;
+            }
+          }
+          
+        });
+        //console.log("total: ", total, " t_expertos(N/2): ",t_expertos);
+        let calculo2 = (total2 - t_expertos)/t_expertos;
+        let calculo2_cvi = total2 / t_expertos_cvi;
+       coherencia_cvr_cvi.push({"id_item": ite_c.id_item, "cvr": calculo2, "cvi": calculo2_cvi});
+
+       let total3 = 0;
+        relevancia_v.forEach(rele => {
+          if(rele.id_item == ite_c.id_item){
+            if(rele.calificacion == 1){
+              total3 = total3 + 1;
+            }
+          }
+          
+        });
+        //console.log("total: ", total, " t_expertos(N/2): ",t_expertos);
+        let calculo3 = (total3 - t_expertos)/t_expertos;
+        let calculo3_cvi = total3 / t_expertos_cvi;
+       relevancia_cvr_cvi.push({"id_item": ite_c.id_item, "cvr": calculo3, "cvi": calculo3_cvi});
+
+       let total4 = 0;
+        suficiencia_v.forEach(sufi3 => {
+          if(sufi3.id_item == ite_c.id_item){
+            //console.log("sufi3 ", sufi3, "ite_c ", ite_c);
+            if(sufi3.calificacion == 1){
+              total4 = total4 + 1;
+            }
+          }
+          
+        });
+        //console.log("total: ", total4, " t_expertos(N/2): ",t_expertos);
+        let calculo4 = (total4 - t_expertos)/t_expertos;
+        let calculo4_cvi = total4 / t_expertos_cvi;
+        suficiencia_cvr_cvi.push({"id_item": ite_c.id_item, "cvr": calculo4, "cvi": calculo4_cvi}); 
+
+      })
+      console.log("claridad cvr_cvi: ", claridad_cvr_cvi);
+      console.log("coherencia cvr_cvi: ", coherencia_cvr_cvi);
+      console.log("relevancia cvr_cvi: ", relevancia_cvr_cvi);
+      console.log("suficiencia cvr_cvi: ", suficiencia_cvr_cvi); */
+      //fin categoria claridad
+    },
+
+    mostrar_evaluaciones(){
+      console.log("expertos a mostrar evaluaciones: ",this.docentes_eval);
+      this.docentes_eval2 = this.docentes_eval;
+
+
+    },
+
+
     //metodos para evaluacion por pares
     onRowClick (evt, row) {
       console.log("fila seleccionada: ", row);
@@ -1585,24 +3047,30 @@ const aut = new Vue({
       }
 
       $('#'+plantilla+'_interface').show();
+      console.log(plantilla);
       
       switch(plantilla) {
         case 'rubrica':
           this.get_rubricas();
+          this.get_campos();
+          this.limpiar_campo();
           break;
         case 'rub_eval': 
           this.get_rubricas_expertos();
+          this.limpiar_campo();
           break;
         case 'eva_estudiante':
           
           break;
         case 'homework':
           this.get_tareas_docente();
+          this.limpiar_campo();
 
           break;
         case 'homework_e':
           //this.get_tareas_estudiante();
           this.get_materias_estudiante();
+          this.limpiar_campo();
           
 
           break;
@@ -1611,6 +3079,7 @@ const aut = new Vue({
           $("#s_e_principal").show();
           $("#s_e_individual").hide();
           $("#tareas_estudiante").hide();
+          this.limpiar_campo();
          // $("#rurbica_m").hide();
           if(this.getCookie('TOKEN_2') == 'ESTUDIANTE'){
             this.asig_eval_estudiantes();
@@ -1618,6 +3087,29 @@ const aut = new Vue({
           if(this.getCookie('TOKEN_2') == 'DOCENTE'){
             this.asig_eval_docente();
           }
+          break;
+        case 'estadisticas_e':
+          this.limpiar_campo();
+          this.get_rubricas_evaluadas();
+          $("#docentes_eva").hide();
+          $("#metricas_eva").hide();
+          //$("#tareas_doc").hide();
+          $("#evaluacion_m").hide();
+          $("#cvi_general").hide();
+          $("#alfa_cron").hide();
+          $("#satis_validez").hide();
+          $("#v_aiken").hide();
+          this.rubricas_eval = [];
+          this.metricas_s = [];
+          this.docentes_eval = [];
+          console.log("estadísticas");
+          break;
+        case 'unesco_e':
+          /* console.log("aqui es unesco"); */
+          this.get_campos();
+          $('#completo').hide();
+          $('#solo_campo_').hide();
+          
           break;
         default:
       }
@@ -1667,7 +3159,7 @@ const aut = new Vue({
           'password': this.password
         }
         axios
-          .post('api/autenticar',datos)
+          .post('api/autenticar_p',datos)
           .then(response => {
             if(response.data.error == "Ok."){
               //let ok = response.data;
@@ -1790,7 +3282,7 @@ const aut = new Vue({
 
     nueva_rubrica(){
       //validacion campos obligatorios llenos
-      if(this.n_rub.trim() == "" || this.d_rub.trim() == ""  || this.s_asignatura == ''){
+      if(this.n_rub.trim() == "" || this.d_rub.trim() == ""  || this.s_asignatura == '' || this.s_campo == '' || this.s_disciplina == '' || this.s_subdisciplina == ''){
         alert("Todos los campos son obligatorios");
       }else{
         if(this.control == 0){
@@ -2113,6 +3605,9 @@ const aut = new Vue({
         "id_docente" : this.getCookie("TOKEN_1"),
         "nombre" : this.n_rubrica,
         "descripcion" : this.d_rubrica,
+        "id_campo": this.s_campo.id,
+        "id_disciplina": this.s_disciplina.id,
+        "id_subdisciplina": this.s_subdisciplina.id,
         "estado": estado_d
       };    
       console.log("array pasado a rubrica: ", array_rubrica);
@@ -2267,6 +3762,13 @@ const aut = new Vue({
       this.n_rubrica = '';
       this.d_rubrica = '';
       this.control = 0;
+      this.s_campo='';
+      this.campos_u=[];
+      this.s_disciplina='';
+      this.disciplinas_u=[];
+      this.s_subdisciplina='';
+      this.subdisciplinas_u=[];
+      this.get_campos();
     },
 
     actualizar_rubrica_bd(){
@@ -2544,7 +4046,7 @@ const aut = new Vue({
       this.control = 1;
         //validacion de estado de la rubrica
         if(rub.estado == "EVALUACION" || rub.estado == "EN USO"){
-          alert("No se puede editar Rúbrica en estado de evaluación");
+          alert("No se puede editar Rúbrica en estado de evaluación o en uso");
         }else{
         
           this.n_rub = rub.nombre;
@@ -2568,6 +4070,45 @@ const aut = new Vue({
           this.id_rub_temp = rub.id;
           //this.cargar_data_rubrica(rub.id)
           //this.fullHeightRubrica = true;
+
+          // para la parte nueva de UNESCO
+          //llenar los v-model
+          this.campos_u.forEach(camp => {
+            if(camp.id == rub.id_campo){
+              this.s_campo = {
+                "id": rub.id_campo,
+                "nombre": camp.nombre
+              }
+            }
+          });
+          axios.get('get_disciplinas_u/'+this.s_campo.id)
+           .then(dis => {
+            this.disciplinas_u = dis.data;
+            this.disciplinas_u.forEach(dis => {
+              if(dis.id == rub.id_disciplina){
+                this.s_disciplina = {
+                  "id": dis.id,
+                  "nombre": dis.nombre
+                }
+              }
+            });
+            axios.get('get_subdisciplinas_u/'+this.s_disciplina.id)
+              .then(sub => {
+                this.subdisciplinas_u = sub.data;
+                this.subdisciplinas_u.forEach(sdis => {
+                  if(sdis.id == rub.id_subdisciplina){
+                    this.s_subdisciplina = {
+                      "id": sdis.id,
+                      "nombre": sdis.nombre
+                    }
+                  }
+                });
+                
+              })
+            
+           })
+
+          
 
         //}
         }

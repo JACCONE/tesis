@@ -80,7 +80,9 @@
                     <div id="rub_eval_interface" class="interface" style="display: none;">@include('layout.rub_eval')</div>
                     <div id="eva_estudiante_interface" class="interface" style="display: none;">@include('layout.eva_estudiante')</div>
                     <div id="homework_interface" class="interface" style="display: none;">@include('layout.homework')</div>
+                    <div id="unesco_e_interface" class="interface" style="display: none;background: #e1e1e1;">@include('layout.unesco')</div>
                     <div id="homework_e_interface" class="interface" style="display: none;">@include('layout.homework_e')</div>
+                    <div id="estadisticas_e_interface" class="interface" style="display: none;">@include('layout.estadisticas_r')</div>
                     <div id="student_e_interface" class="interface" style="display: none;">@include('layout.student_evaluation')</div>
 
                     {{-- loading --}}

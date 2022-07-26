@@ -20,6 +20,9 @@ class RubricaN extends Migration
             $table->integer('id_docente');//debe ser clave foranea tambien
             $table->string('nombre');
             $table->text('descripcion');
+            $table->integer('id_campo');
+            $table->integer('id_disciplina');
+            $table->integer('id_subdisciplina');
             $table->string('estado');
             $table->timestamps();//crea dos columnas create_add y update_up
          /*   $table->foreign("id_asignatura")

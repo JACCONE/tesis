@@ -38,6 +38,9 @@ class rubricaController extends Controller
         $rubrica->id_docente = $request->get('id_docente');
         $rubrica->nombre = $request->get('nombre');
         $rubrica->descripcion = $request->get('descripcion');
+        $rubrica->id_campo = $request->get('id_campo');
+        $rubrica->id_disciplina = $request->get('id_disciplina');
+        $rubrica->id_subdisciplina = $request->get('id_subdisciplina');
         $rubrica->estado = $request->get('estado');
         
        if(!$rubrica->save()){

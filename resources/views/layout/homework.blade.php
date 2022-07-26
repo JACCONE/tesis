@@ -52,7 +52,7 @@
         <div  class="evaluar" @click = "asig_evaluaciones" id="asignar">
            Asignar Evaluaciones
         </div>
-        <table style="width: 100%; padding:23px; display: none;" id="tbl_1">
+        <table class="tabla_1" style="width: 100%; padding:23px; display: none;" id="tbl_1">
           <thead style="height: 50px;">
             <tr>
               <th class="cabecera" style="width: 30%">ESTUDIANTE</th>
@@ -78,7 +78,7 @@
             </tr>
           </tbody>        
         </table>
-        <table id="tbl_2"  style="width: 100%; padding:23px; display: none;">
+        <table class="tabla_1" id="tbl_2"  style="width: 100%; padding:23px; display: none;">
           <thead style="height: 50px;">
             <tr>
               <th class="cabecera" style="width: 30%">ESTUDIANTE</th>
@@ -102,7 +102,7 @@
             </tr>
           </tbody>
         </table>
-        <table id="tbl_3" style="width: 100%; padding:23px; display: none;">
+        <table  class="tabla_1" id="tbl_3" style="width: 100%; padding:23px; display: none;">
           <thead style="height: 50px;">
             <tr>
               <th class="cabecera" style="width: 25%">ESTUDIANTE</th>

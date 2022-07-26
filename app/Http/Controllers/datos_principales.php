@@ -10,12 +10,12 @@ class datos_principales extends Controller
     //
     public function get_rubricas($id_docente){
         $info = DB::connection('pgsql')->select(
-        "SELECT rub.id, rub.nombre, rub.descripcion, asi.id as asignatura, rub.estado 
+        "SELECT rub.id, rub.nombre, rub.descripcion,rub.id_campo, rub.id_disciplina, rub.id_subdisciplina, asi.id as asignatura, rub.estado 
         FROM tesis.rubricas rub
         inner join tesis.asignaturas as asi
         on asi.id = rub.id_asignatura
         where rub.id_docente = $id_docente
-        ORDER BY rub.id ASC "
+        ORDER BY rub.id ASC"
         );
         return response()->json($info, 200);
 
