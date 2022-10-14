@@ -52,6 +52,11 @@
         <div  class="evaluar" @click = "asig_evaluaciones" id="asignar">
            Asignar Evaluaciones
         </div>
+        <div id="descarga_notas" style="display: flex;justify-content: end;padding: 7px;">
+          <span style="line-height: 30px;font-size: 15px;font-weight: bold;color: black;">Descargar</span> 
+          <q-btn icon="download" @click="excel_download_n" dense flat></q-btn>
+          <a id="test2_n" href="" style = "display = none">test.xls</a>
+        </div>
         <table class="tabla_1" style="width: 100%; padding:23px; display: none;" id="tbl_1">
           <thead style="height: 50px;">
             <tr>

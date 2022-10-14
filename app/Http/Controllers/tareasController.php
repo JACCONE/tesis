@@ -547,4 +547,12 @@ class tareasController extends Controller
 
 
     }
+    public function get_cedula($id_estudiante){
+        $cedula = DB::connection('pgsql')->select("SELECT cedula
+        FROM esq_datos_personales.personal
+        where idpersonal = $id_estudiante limit 1");
+
+        return response()->json($cedula[0]->cedula); 
+
+    }
 }

@@ -69,6 +69,7 @@
         <div class="solo_btn">
             <q-btn color="green-6" icon="save" title="Agregar" @click="editar_campo"></q-btn>
             <q-btn color="green-6" icon="clear" title="Limpiar" @click="limpiar_campo"></q-btn>
+            <q-btn color="green-6" icon="delete" title="Limpiar" @click="eliminar_campo"></q-btn>
         </div>
     </div>
         

@@ -176,7 +176,9 @@
         </tr>
       </table>
     </div>
-
+    <div>
+      <q-btn flat label="Guardar" color="primary" @click="actualizar_cvi_g" ></q-btn>
+    </div>
   </div>
   <div id="satis_validez">
     <div>
@@ -222,6 +224,9 @@
       <div class="sat_v">
         <div class="sal_v2">Porcentaje satisfacción Validez de la Rúbrica</div>
         <div class="sat_v3">@{{satis_vali}}</div>
+      </div>
+      <div>
+        <q-btn flat label="Guardar" color="primary" @click="actualizar_satis_v" ></q-btn>
       </div>
 
     </div>
@@ -283,6 +288,10 @@
     <div class="sat_v" style="margin-top: 25px;display: flex;justify-content: center;">
       <div class="sal_v2">Alfa de Cronbanch</div>
       <div class="sat_v3">@{{alfa_c}}</div>
+    </div>
+    {{-- parte para guardar alfa --}}
+    <div>
+      <q-btn flat label="Guardar" color="primary" @click="actualizar_alfa" ></q-btn>
     </div>
 
 

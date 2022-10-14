@@ -37,6 +37,7 @@ const aut = new Vue({
     docentes_filtro: [],
     docente_seleccionado:'',
     label2:'',
+    eva_exp_v:false,
     //para nuevos cambios en rub Jorge
     n_rub : '',
     d_rub : '',
@@ -44,23 +45,33 @@ const aut = new Vue({
     s_periodo:'',
     bandera_unesco:'',// 1-> campo, 2->disciplina, 3-> subdisciplina
     s_campo:'', // model de select de campos
+    s_campo_d:'', 
     campos_u:[], // variable que contiene los campos
+    campos_u_d:[],
     campo_t:'',
+    campo_t_d:'',
     control_cam:0,
     control_dis:0,
     control_sub:0,
     s_disciplina:'', // model de select de disciplinas
+    s_disciplina_d:'',
     disciplinas_u:[], // variable que contiene las disciplinas
+    disciplinas_u_d:[],
     disciplina_t:'',
+    disciplina_t_d:'',
     s_subdisciplina:'', // model de select de subdisciplinas
+    s_subdisciplina_d:'',
     subdisciplinas_u:[], // variable que contiene las subdisciplinas
+    subdisciplinas_u_d:[],
     subdisciplina_t:'',
+    subdisciplina_t_d:'',
     s_asignatura:'',
     campo_periodo :[], // quemado por el momento, se debe llenar con una peticion
     campo_asignatura :[{
       "id":2, "nombre_a": 'Matemáticas'
     }],
     rub_filtrado: [], //para el buscador de rubricas
+    rub_filtrado_e: [], //para el buscador de rubricas
     rub_filtrado_expertos: [], // para el buscador de rubricas a evaluar
 
     texto: '', // ""
@@ -279,6 +290,8 @@ const aut = new Vue({
             rub_evaluadas:[],
             docentes_eval:[],
             docentes_eval2:[],
+            docentes_eval2_e:[],
+            
             doc_eval:[],
             metricas:[
               {
@@ -302,6 +315,17 @@ const aut = new Vue({
                 'nombre': 'V de Aiken'
               }
             ],
+            tipo_eval:'',
+            tipo_eval_:[
+              {
+                'id':1,
+                'nombre': 'Rubricas a evaluar'
+              },
+              {
+                'id':2,
+                'nombre': 'Rubricas evaluadas'
+              }
+            ],
             metricas_s:[],
             m_disabled : true,
             criterio_e:[],
@@ -309,6 +333,11 @@ const aut = new Vue({
             suficiancia_cal: [],
             generales_cal:[],
             generales_obs:[],
+            criterio_e_2:[],
+            items_e_2:[],
+            suficiancia_cal_2: [],
+            generales_cal_2:[],
+            generales_obs_2:[],
             control_exp: 1,
             cvi_general: 0,
             cal_satis_vali : [],
@@ -393,6 +422,77 @@ const aut = new Vue({
               
             ],
             array_tbl_6: [],
+            notas_final: [{
+                'Cédula': '1315341626',
+                'Nombres': 'ADRIAN ALEJANDRO MACIAS PALMA',
+                'Nota docente': 8.75,
+                'Evaluación Pares': 8.43,
+                'Nota Promedio': 8.59
+              },
+              {
+                'Cédula': '1315548147',
+                'Nombres': 'ADRIAN ROLANDO BAQUE CHICA',
+                'Nota docente': 8.15,
+                'Evaluación Pares': 7.48,
+                'Nota Promedio': 7.82
+              },
+              {
+                'Cédula': '0921915641',
+                'Nombres': 'ALEJANDRO GUILLERMO FALCONES PINARGOTE',
+                'Nota docente': 8.15,
+                'Evaluación Pares': 8.1,
+                'Nota Promedio': 8.13
+              },
+              {
+                'Cédula': '1350065619',
+                'Nombres': 'ALEX  JAIR PEREZ MERA',
+                'Nota docente': 8.78,
+                'Evaluación Pares': 9.06,
+                'Nota Promedio': 8.92
+              },
+              {
+                'Cédula': '1350840052',
+                'Nombres': 'ANGEL JEFFERSON PALMA LAZ',
+                'Nota docente': 9.4,
+                'Evaluación Pares': 8.76,
+                'Nota Promedio': 9.08
+              },
+              {
+                'Cédula': '1351863103',
+                'Nombres': 'ANGEL RAFAEL BRIONES MOREIRA',
+                'Nota docente': 8.75,
+                'Evaluación Pares': 8.75,
+                'Nota Promedio': 8.75
+              },
+              {
+                'Cédula': '1315463321',
+                'Nombres': 'ANTHONY ARIEL INTRIAGO INTRIAGO',
+                'Nota docente': 8.78,
+                'Evaluación Pares': 8.45,
+                'Nota Promedio': 8.62
+              },
+              {
+                'Cédula': '1312729146',
+                'Nombres': 'CARLOS ALBERTO VALDIVIESO ANCHUNDIA',
+                'Nota docente': 9.4,
+                'Evaluación Pares': 8.14,
+                'Nota Promedio': 8.77
+              },
+              {
+                'Cédula': '1313006825',
+                'Nombres': 'CARLOS LUIS MACIAS SOLORZANO',
+                'Nota docente': 9.38,
+                'Evaluación Pares': 8.74,
+                'Nota Promedio': 9.06
+              },
+              {
+                'Cédula': '1350515282',
+                'Nombres': 'CLARENS WANDERLEY CONSTANTE CANO',
+                'Nota docente': 8.78,
+                'Evaluación Pares': 8.74,
+                'Nota Promedio': 8.76
+              }
+            ],
             ICV_G2 : 0,
             satis_vali : 0,
             tbl_v_aiken : [],
@@ -407,7 +507,9 @@ const aut = new Vue({
             t_docente:[], //variable con los datos
             calificaciones_tar : [], // contiene todas las calificaciones para el calculo del alfa de una tarea
             alfa_c: 0,
-            tbl_alfa:[]       
+            tbl_alfa:[],
+            // variable para descarga de estadisticas de rubrica
+            e_rubricas:[]       
   },
   beforeMount() {
     let cookie_array = document.cookie.split(";");
@@ -493,6 +595,153 @@ const aut = new Vue({
     },
   },
   methods: {
+    /*metodos para almacenar estadisticas*/
+    
+    descargar_e_r(){
+      let array ={
+        'id_campo': 0,
+        'id_dis': 0,
+        'id_subd': 0
+      }
+      
+      if(this.s_campo_d == ''){
+        alert("Seleccione el campo para poder ejecutar la descarga!");
+      }else{
+        array.id_campo = this.s_campo_d.id;
+        if(this.s_disciplina_d == ''){array.id_dis = 0; }else{array.id_dis = this.s_disciplina_d.id;}
+        if(this.s_subdisciplina_d == ''){array.id_subd = 0; }else{array.id_subd = this.s_subdisciplina_d.id;}
+        console.log("array enviado: ", array);
+        axios.post('descargar_r',array)
+       .then(desc => {
+        console.log("descarga recibida: ", desc.data);
+        this.e_rubricas = desc.data;
+        this.excel_download_r();
+      })
+      }
+      
+
+
+    },
+    excel_download_r(){
+      console.log("funciona descarga notas rubrica");  
+      /* console.log(document.getElementById("ambiente_p").children[0].children[0].children[0]);
+      console.log(document.getElementById("ambiente_d"));
+      console.log($P{usu_no_rep}); */
+      //var json=$P{usu_no_rep};
+
+  
+      testTypes = {
+            "id_rubrica": "String",
+            "nombre": "String",
+            "cvi_general": "String",
+            "alfa": "String",
+            "satisfaccion_validez": "String"
+        };
+    
+    emitXmlHeader = function () {
+        var headerRow =  '<ss:Row>\n';
+        for (var colName in testTypes) {
+            headerRow += '  <ss:Cell>\n';
+            headerRow += '    <ss:Data ss:Type="String">';
+            headerRow += colName + '</ss:Data>\n';
+            headerRow += '  </ss:Cell>\n';        
+        }
+        headerRow += '</ss:Row>\n';    
+        return '<?xml version="1.0"?>\n' +
+               '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n' +
+               '<ss:Worksheet ss:Name="Sheet1">\n' +
+               '<ss:Table>\n\n' + headerRow;
+    };
+     
+    emitXmlFooter = function() {
+        return '\n</ss:Table>\n' +
+               '</ss:Worksheet>\n' +
+               '</ss:Workbook>\n';
+    };
+    
+    jsonToSsXml = function (jsonObject) {
+        var row;
+        var col;
+        var xml;
+        var data = typeof jsonObject != "object" ? JSON.parse(jsonObject) : jsonObject;
+        
+        xml = emitXmlHeader();
+    
+        for (row = 0; row < data.length; row++) {
+            xml += '<ss:Row>\n';
+          
+            for (col in data[row]) {
+                xml += '  <ss:Cell>\n';
+                xml += '    <ss:Data ss:Type="' + testTypes[col]  + '">';
+                xml += data[row][col] + '</ss:Data>\n';
+                xml += '  </ss:Cell>\n';
+            }
+    
+            xml += '</ss:Row>\n';
+        }
+        
+        xml += emitXmlFooter();
+        return xml;  
+    };
+   
+    //console.log(jsonToSsXml(json);
+    
+    download = function (content, filename, contentType) {
+        if (!contentType) contentType = 'application/octet-stream';
+        var a = document.getElementById('test3_n');
+        var blob = new Blob([content], {
+            'type': contentType
+        });
+        console.log("blob", blob, " content recibido: ", content);
+        a.href = window.URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+    };
+    
+    download(jsonToSsXml(this.e_rubricas), 'Estadisticas_rubricas.xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      
+    },
+    actualizar_alfa(){
+      let alfa ={
+        "id_rubrica":this.rubricas_eval.id_rubrica,
+        "alfa":this.alfa_c
+      }
+      axios.put('update_alfa',alfa)
+      .then(alf => {
+        console.log("alfa actualizado en la rubrica.");
+      })
+    },
+    actualizar_satis_v(){
+      let satis ={
+        "id_rubrica":this.rubricas_eval.id_rubrica,
+        "satis":this.satis_vali
+      }
+      axios.put('update_satis',satis)
+      .then(alf => {
+        console.log("satisfacción actualizado en la rubrica.");
+      })
+    },
+    actualizar_cvi_g(){
+      let cvi ={
+        "id_rubrica":this.rubricas_eval.id_rubrica,
+        "cvi":this.ICV_G2
+      }
+      axios.put('update_cvi',cvi)
+      .then(alf => {
+        console.log("cvi actualizado en la rubrica.");
+      })
+    },
+
+    /*para caso nuevo de mostrar rubrica evaluadas a expertos*/
+    mostrar_casos(){
+      if(this.tipo_eval.id == 1){
+        this.get_rubricas_expertos();
+      }
+      if(this.tipo_eval.id == 2){
+        this.get_rubricas_expertos_eval();
+      }
+    },
     /*metodos para parte de la unesco*/ 
     mostrar_campo(){
       this.bandera_unesco = 1;
@@ -667,6 +916,85 @@ const aut = new Vue({
       
       
     },
+    eliminar_campo(){
+      if(this.bandera_unesco == 1){
+        //validar que el campo no este vacio
+        if(this.campo_t.trim() == '' && this.control_cam != 1){
+          alert("Seleccione el campo a eliminar");
+        }else{
+          //petición para validar eliminacion
+          axios
+          .delete("delete_campo/"+this.s_campo.id)
+          .then((eliminado) => {
+            if(eliminado.data == 1){
+              alert("Campo eliminado");
+              this.get_campos;
+              this.campo_t = '';
+              this.control_cam = 0;
+              this.s_campo = '';
+            }else{
+              alert("No se puede eliminar, este campo está siendo utilizado en una o varias rúbricas");
+            }
+
+              console.log("eliminado: ", eliminado.data);
+          });
+
+        }
+      }
+      if(this.bandera_unesco == 2){
+        if(this.disciplina_t.trim() == '' && this.control_dis != 1){
+          alert("Seleccione el disciplina a eliminar");
+        }else{
+           //petición para validar eliminacion
+           axios
+          .delete("delete_disciplina/"+this.s_disciplina.id)
+          .then((eliminado2) => {
+            if(eliminado2.data == 1){
+              alert("Disciplina eliminada");
+              this.get_campos;
+              this.campo_t = '';
+              this.disciplina_t = '';
+              this.control_dis = 0;
+              this.s_campo = '';
+              this.s_disciplina = '';
+              this.disciplinas_u = '';
+            }else{
+              alert("No se puede eliminar, esta disciplina está siendo utilizado en una o varias rúbricas");
+            }
+
+              console.log("eliminado: ", eliminado2.data);
+          });
+        }
+      }
+      if(this.bandera_unesco == 3){
+        if(this.subdisciplina_t.trim() == '' && this.control_sub != 1){
+          alert("Seleccione el subdisciplina a eliminar");
+        }else{
+           //petición para validar eliminacion
+           axios
+          .delete("delete_subdisciplina/"+this.s_subdisciplina.id)
+          .then((eliminado3) => {
+            if(eliminado3.data == 1){
+              alert("Subdisciplina eliminada");
+              this.get_campos;
+              this.campo_t = '';
+              this.disciplina_t = '';
+              this.subdisciplina_t = '';
+              this.control_sub = 0;
+              this.s_campo = '';
+              this.s_disciplina = '';
+              this.s_subdisciplina = '';
+              this.disciplinas_u = '';
+              this.subdisciplinas_u = '';
+            }else{
+              alert("No se puede eliminar, esta subdisciplina está siendo utilizado en una o varias rúbricas");
+            }
+
+              console.log("eliminado: ", eliminado3.data);
+          });
+        }
+      }
+    },
     limpiar_campo(){
       this.control_cam = 0;
       this.control_dis = 0;
@@ -686,6 +1014,14 @@ const aut = new Vue({
              //console.log("resultado: ", rub_eval.data);
             this.campos_u = cam.data;
             console.log("campos: ",this.campos_u);
+           })
+    },
+    get_campos_d(){
+      axios.get('get_campos_u')
+           .then(cam => {
+             //console.log("resultado: ", rub_eval.data);
+            this.campos_u_d = cam.data;
+            //console.log("campos: ",this.campos_u);
            })
     },
     llenar_disciplinas(){
@@ -717,6 +1053,19 @@ const aut = new Vue({
             console.log("campos: ",this.disciplinas_u);
            })
     },
+    llenar_disciplinas2_d(){
+      this.campo_t_d = this.s_campo_d.nombre;
+      this.s_disciplina_d = "";
+      this.s_subdisciplina_d = "";
+      //console.log("entre a consultar disciplinas");
+      axios.get('get_disciplinas_u/'+this.s_campo_d.id)
+           .then(dis => {
+            console.log("peticion");
+             //console.log("resultado: ", rub_eval.data);
+            this.disciplinas_u_d = dis.data;
+            //console.log("campos: ",this.disciplinas_u);
+           })
+    },
     
     llenar_bandera(){
       this.control_cam = 0;
@@ -740,6 +1089,19 @@ const aut = new Vue({
       })
 
     },
+    llenar_subdisciplinas2_d(){
+      this.s_subdisciplina = "";
+      axios.get('get_subdisciplinas_u/'+this.s_disciplina_d.id)
+      .then(sub => {
+       console.log("peticion");
+        //console.log("resultado: ", rub_eval.data);
+       this.subdisciplinas_u_d = sub.data;
+       //console.log("sub: ",this.subdisciplinas_u);
+       this.disciplina_t_d = this.s_disciplina_d.nombre;
+
+      })
+
+    },
     llenar_subdisciplinas(){
       this.s_subdisciplina = "";
       axios.get('get_subdisciplinas_u/'+this.s_disciplina.id)
@@ -751,6 +1113,88 @@ const aut = new Vue({
       })
 
     },
+    //metodo para descarga de notas docente
+    excel_download_n(){
+      console.log("funciona descarga notas");  
+      /* console.log(document.getElementById("ambiente_p").children[0].children[0].children[0]);
+      console.log(document.getElementById("ambiente_d"));
+      console.log($P{usu_no_rep}); */
+      //var json=$P{usu_no_rep};
+
+  
+      testTypes = {
+            "Cédula": "String",
+            "Nombres": "String",
+            "Nota docente": "String",
+            "Evaluación Pares": "String",
+            "Nota Promedio": "String"
+        };
+    
+    emitXmlHeader = function () {
+        var headerRow =  '<ss:Row>\n';
+        for (var colName in testTypes) {
+            headerRow += '  <ss:Cell>\n';
+            headerRow += '    <ss:Data ss:Type="String">';
+            headerRow += colName + '</ss:Data>\n';
+            headerRow += '  </ss:Cell>\n';        
+        }
+        headerRow += '</ss:Row>\n';    
+        return '<?xml version="1.0"?>\n' +
+               '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n' +
+               '<ss:Worksheet ss:Name="Sheet1">\n' +
+               '<ss:Table>\n\n' + headerRow;
+    };
+     
+    emitXmlFooter = function() {
+        return '\n</ss:Table>\n' +
+               '</ss:Worksheet>\n' +
+               '</ss:Workbook>\n';
+    };
+    
+    jsonToSsXml = function (jsonObject) {
+        var row;
+        var col;
+        var xml;
+        var data = typeof jsonObject != "object" ? JSON.parse(jsonObject) : jsonObject;
+        
+        xml = emitXmlHeader();
+    
+        for (row = 0; row < data.length; row++) {
+            xml += '<ss:Row>\n';
+          
+            for (col in data[row]) {
+                xml += '  <ss:Cell>\n';
+                xml += '    <ss:Data ss:Type="' + testTypes[col]  + '">';
+                xml += data[row][col] + '</ss:Data>\n';
+                xml += '  </ss:Cell>\n';
+            }
+    
+            xml += '</ss:Row>\n';
+        }
+        
+        xml += emitXmlFooter();
+        return xml;  
+    };
+   
+    //console.log(jsonToSsXml(json);
+    
+    download = function (content, filename, contentType) {
+        if (!contentType) contentType = 'application/octet-stream';
+        var a = document.getElementById('test2_n');
+        var blob = new Blob([content], {
+            'type': contentType
+        });
+        console.log("blob", blob, " content recibido: ", content);
+        a.href = window.URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+    };
+    
+    download(jsonToSsXml(this.notas_final), 'Notas.xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      
+    },
+
     
     //metodo para descarga de informacion en excel
     excel_download(){
@@ -890,6 +1334,63 @@ const aut = new Vue({
            })
       })
     },
+    expertos_rubrica_e(rub_r){
+      //console.log("seleccion: ", this.rubricas_eval.id_rubrica);
+      axios.get('get_exp_rub/'+rub_r.id)
+           .then(rub_exp => {
+             //console.log("resultado expertos: ", rub_exp.data);
+            this.doc_eval = rub_exp.data;
+            this.m_disabled = false;
+            //peticion 1 para traer criterios e items
+            axios.get('get_cri_rub_eval/'+rub_r.id)
+           .then(rub_cri => {
+             //console.log("criterios evaluados: ",rub_cri.data );
+             this.criterio_e_2 = rub_cri.data;
+
+             //peticion para obtener los items de la rubrica
+              axios.get('get_ite_eval/'+rub_r.id)
+              .then(rub_ite => {
+              //console.log("items evaluados: ",rub_ite.data );
+              this.items_e_2 = rub_ite.data;
+
+                //peticion para calificaciones de suficiencia
+                axios.get(' get_cal_suficiencia/'+rub_r.id)
+                  .then(suf_cal => {
+                  //console.log("suficiencia calificaciones: ",suf_cal.data );
+                  this.suficiancia_cal_2 = suf_cal.data;
+                    
+                    //peticion para obtener las calificaciones de claridad, coherencia, etc
+                    axios.get('get_cal_generales/'+rub_r.id)
+                      .then(gen_cal => {
+                      //console.log("calificaciones generales: ",gen_cal.data );
+                      this.generales_cal_2 = gen_cal.data;
+
+                        //peticion para obtener observaciones generales
+                        axios.get('get_obs_generales/'+rub_r.id)
+                          .then(obs_gen => {
+                         // console.log("observaciones generales: ",obs_gen.data );
+                          this.generales_obs_2 = obs_gen.data;
+
+                          //obtener id_experto del que se encuentra logueado
+                            axios.get('get_id_exp/'+this.getCookie('TOKEN_4'))
+                            .then(id_exp => {
+                          // console.log("observaciones generales: ",obs_gen.data );
+                            //this.generales_obs = obs_gen.data;dd
+                            this.docentes_eval2_e = id_exp.data;
+                            this.eva_exp_v = true;
+
+                            })
+                          })
+
+                      })
+                  
+                  })
+
+              })
+
+           })
+      })
+    },
     mostrar_metrica(){
      // console.log("metrica a usar : ", this.metricas_s);
       if(this.metricas_s.id_metrica == 1){
@@ -985,11 +1486,11 @@ const aut = new Vue({
       //peticiones para obtener calificaciones de docente y estudiantes
       axios.get('get_cali_doc/'+this.rubricas_eval.id_rubrica)
         .then(tard =>{
-          //console.log("calificaciones docente: ", tard.data);
+          console.log("calificaciones docente: ", tard.data);
           cal_doc = tard.data;
           axios.get('get_cali_est/'+this.rubricas_eval.id_rubrica)
           .then(tare =>{
-            //console.log("calificaciones docente: ", tare.data);
+            console.log("calificaciones docente: ", tare.data);
             cal_est = tare.data;
             console.log("unidos: ", cal_doc.concat(cal_est));
             this.calificaciones_tar = cal_doc.concat(cal_est);
@@ -1066,6 +1567,7 @@ const aut = new Vue({
                  //calculo de la varianza del las suma totales:
                  let cont4 = 0;
                  let acu4 = 0;
+                 console.log("suma total 1 : ", suma_total1);
                  suma_total1.forEach(s_2 => {
                       //resta
                       acu4 = acu4 + Math.pow((s_2.suma - promedio_t),2);
@@ -1803,6 +2305,7 @@ const aut = new Vue({
     mostrar_evaluaciones(){
       console.log("expertos a mostrar evaluaciones: ",this.docentes_eval);
       this.docentes_eval2 = this.docentes_eval;
+      $('#evaluacion').show();
 
 
     },
@@ -2232,6 +2735,7 @@ const aut = new Vue({
           document.getElementById("tbl_3").style.display = null;
           document.getElementById("tbl_2").style.display = 'none';
           document.getElementById("tbl_1").style.display = 'none';
+          $('#descarga_notas').show();
           //guardar asignaciones
           let con = {
             'docente': this.getCookie('TOKEN_1'),
@@ -2310,10 +2814,13 @@ const aut = new Vue({
       return Math.floor(Math.random() * (max - min)) + min;
     },
     estado_tarea(id_tarea,id_asigna){
+      let notas_prom = [];
+      this.notas_final = [];
       //this.showLoading();
       
        document.getElementById("log").style.display = null;
        document.getElementById("principal_h").style.display = "none";
+
       
       /*document.getElementById("log").style.display = null; */
       const fecha = Date.now();
@@ -2363,6 +2870,7 @@ const aut = new Vue({
                 document.getElementById("asignar").style.display = null;
                 document.getElementById("tbl_2").style.display = null;
                 document.getElementById("tbl_3").style.display = 'none';
+                $('#descarga_notas').hide();
               }else{
                 //caso asignado evaluacion por pares
                 //validar inahabilitar btn de asignacion de evaluacion
@@ -2377,7 +2885,8 @@ const aut = new Vue({
                   axios.get('get_asignaciones_tarea/'+this.id_tarea_actual)
                 .then(asigna =>{
                   
-                  let asignaciones = asigna.data; 
+                  let asignaciones = asigna.data;
+                  console.log("asignaciones: ", asignaciones); 
 // prueba para traer notas docente y estudiantes
                 axios.get('get_notas_docente/'+this.id_tarea_actual)
                 .then(notas=>{
@@ -2400,7 +2909,8 @@ const aut = new Vue({
                         //'fecha_envio': general[i].fecha_envio,
                         //'link_envio':general[i].link_envio,
                         'nota_docente': nota_temp,
-                        'asignados': []
+                        'asignados': [],
+                        'cedula':''
                       }
                     
                     for (let j = 0; j < asignaciones.length; j++) {
@@ -2423,11 +2933,79 @@ const aut = new Vue({
                         temp1.asignados.push(temp2);
                       }
                     }
-                    this.estudiantes_evaluar.push(temp1);
+                    /*nueva petición para obtener cedulas de estudiantes*/ 
+                    console.log("aqui inicia cedula");
+                  axios.get('get_cedulas/'+general[i].idpersonal)
+                    .then(ced=>{
+                      console.log("esta es la cedula de: ", general[i].idpersonal,' :', ced.data);
+                      temp1.cedula = ced.data;
+                      this.estudiantes_evaluar.push(temp1);
+
+                      /*proceso para armar array de descarga de notas*/
+                      /* {
+                        'Cédula': '1315341626',
+                        'Nombres': 'ADRIAN ALEJANDRO MACIAS PALMA',
+                        'Nota docente': 8.75,
+                        'Evaluación Pares': 8.43,
+                        'Nota Promedio': 8.59
+                      }, */
+                      let temp_n = 0;
+                      let control = 0;
+                      console.log("primer ciclo: ", temp_notas_e);
+                      temp_notas_e.forEach(not_e => {
+                        if(general[i].idpersonal == not_e[1]){
+                          temp_n = temp_n + not_e[2];
+                          control = control + 1;
+                        }
+                        
+                      });
+                      temp_n = temp_n/control;
+                      console.log("nota promedio de: ", general[i].idpersonal, ' = ', temp_n);
+                    
+                      this.notas_final.push(
+                        {
+                          'Cédula': temp1.cedula,
+                          'Nombres': general[i].estudiante,
+                          'Nota docente': nota_temp,
+                          'Evaluación Pares': temp_n,
+                          'Nota Promedio': (nota_temp+temp_n)/2
+                        }
+                      )
+                      
+                      
+                    });
+                    
+                                       
                   }
+                  
+                    console.log("aqui finaliza ciclos finales: ", this.notas_final);
+                    /*
+                  let temp_n_final = [];
+                      this.estudiantes_evaluar.forEach(est_e => {
+                        temp_n_final.push(
+                          {
+                            'id_estudiante': est_e.id_estudiante,
+                            'Cédula': est_e.cedula,
+                            'Nombres': est_e.estudiante,
+                            'Nota docente': est_e.nota_docente,
+                            'Evaluación Pares': 'sin nota',
+                            'Nota Promedio': 'sin nota'
+                          }
+                        )
+                        
+                      });
+                  temp_n_final.forEach(temp => {
+                    temp_notas_e.forEach(not_t => {
+                      if(temp.id_estudiante == not_t[1]){
+                        console.log("nota: ", not_t[2]);
+                      }
+                    });
+                  });
+*/
                 document.getElementById("tbl_1").style.display = 'none';
                 document.getElementById("tbl_2").style.display = 'none';
-                document.getElementById("tbl_3").style.display = null;         
+                document.getElementById("tbl_3").style.display = null; 
+                $('#descarga_notas').show();        
                 })
                 });
                 })
@@ -2440,6 +3018,7 @@ const aut = new Vue({
               document.getElementById("tbl_1").style.display = null;
               document.getElementById("tbl_2").style.display = "none";
               document.getElementById("tbl_3").style.display = "none";
+              $('#descarga_notas').hide();
             }
             //this.hideLoading();
             //console.log(document.getElementById("tbl_1"));
@@ -2669,7 +3248,7 @@ const aut = new Vue({
             
           }else{
             this.get_rubricas_expertos();
-            //camboar el update del status del experto exxterno por un delete del registro de la clave
+            //cambiar el update del status del experto exxterno por un delete del registro de la clave
             this.n_suficiencia = '';
             this.n_coherencia= '';
             this.n_relevancia= '';
@@ -2679,6 +3258,7 @@ const aut = new Vue({
             this.m_item='';
             this.eva_observacion = '';
             this.confirm_2 = false;
+            alert("Evaluación finalizada!");
           }
           
         });
@@ -2820,6 +3400,7 @@ const aut = new Vue({
           axios
           .put('evaluacion/suficiencia',temp2)
           .then(response_suf => {
+            alert("Item evaluado!");
            
           });
 
@@ -3056,8 +3637,11 @@ const aut = new Vue({
           this.limpiar_campo();
           break;
         case 'rub_eval': 
-          this.get_rubricas_expertos();
+          //this.get_rubricas_expertos();
+          $("#filtrado").hide();
+          $("#filtrado_e").hide();
           this.limpiar_campo();
+
           break;
         case 'eva_estudiante':
           
@@ -3065,6 +3649,7 @@ const aut = new Vue({
         case 'homework':
           this.get_tareas_docente();
           this.limpiar_campo();
+          $('#descarga_notas').hide();
 
           break;
         case 'homework_e':
@@ -3099,6 +3684,8 @@ const aut = new Vue({
           $("#alfa_cron").hide();
           $("#satis_validez").hide();
           $("#v_aiken").hide();
+          $("#evaluacion").hide();
+          
           this.rubricas_eval = [];
           this.metricas_s = [];
           this.docentes_eval = [];
@@ -3111,6 +3698,11 @@ const aut = new Vue({
           $('#solo_campo_').hide();
           
           break;
+        case 'descargas':
+          this.get_campos_d();
+
+          break;
+
         default:
       }
     },
@@ -3137,11 +3729,39 @@ const aut = new Vue({
         this.rub_general=response_4.data;
         let tmp = response_4.data;
         this.rub_filtrado = tmp; 
+        $("#filtrado").show();
+        $("#filtrado_e").hide();
+        $("#criterios_e").show();
+        $("#rubrica_m").show();
+        
         //traer id_evaluacion
 
         
         //this.model.sub = this.subdisciplina.find(el=>el.id==2);
       });
+    },
+    get_rubricas_expertos_eval(){//peticion para datos generales de rubricas de expertos para evaluar
+      //let id_docente = 1; // quemado hasta resolver lo de la sesion  
+      axios
+      .get('rub_general/experto/evaluadas/'+this.getCookie("TOKEN_4"))
+      .then(evaluadas => {
+        console.log("rubricas evaluadas: ", evaluadas.data);
+        this.rub_general=evaluadas.data;
+        let tmp = evaluadas.data;
+        this.rub_filtrado_e = tmp;
+        $("#filtrado").hide();
+        $("#filtrado_e").show();
+        $("#criterios_e").hide();
+        $("#rubrica_m").hide();
+        
+     
+        //this.model.sub = this.subdisciplina.find(el=>el.id==2);
+      });
+    },
+
+    mostrar_evaluacion(rub){
+      this.expertos_rubrica_e(rub)
+
     },
     get_asignaturas(){//peticion para materias de docente segun periodo
        axios.get('materias/'+this.campo_periodo[0].idperiodo+'/'+this.getCookie('TOKEN_1'))
@@ -3763,11 +4383,17 @@ const aut = new Vue({
       this.d_rubrica = '';
       this.control = 0;
       this.s_campo='';
+      this.s_campo_d='';
       this.campos_u=[];
+      this.campos_u_d=[];
       this.s_disciplina='';
+      this.s_disciplina_d='';
       this.disciplinas_u=[];
+      this.disciplinas_u_d=[];
       this.s_subdisciplina='';
+      this.s_subdisciplina_d='';
       this.subdisciplinas_u=[];
+      this.subdisciplinas_u_d=[];
       this.get_campos();
     },
 
@@ -3983,7 +4609,7 @@ const aut = new Vue({
       console.log("rubrica a mostrar: ", rubrica);
       this.cargar_data_rubrica(rubrica.id);
       this.n_rub_visual = rubrica.nombre;
-      this.fullHeightRubrica2 = true;
+     // this.fullHeightRubrica2 = true;
     },
     mostrar_rubrica_completa2(id_rubrica){
       this.cargar_data_rubrica(id_rubrica);

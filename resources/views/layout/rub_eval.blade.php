@@ -8,8 +8,23 @@
       <div style=" background: #ffffff; display: none">
           <q-input  label="Buscar..."  v-model="filtro" ></q-input>
       </div>
-      <template v-for="rub in rub_filtrado">
-          <div class="row rub_1_exp">
+      <div>
+        <q-select filled 
+                v-model="tipo_eval" 
+                use-input 
+                :options="tipo_eval_" 
+                option-value="id" 
+                option-label="nombre" 
+                {{-- input-debounce="0" --}}
+                label="Seleccione caso" 
+                {{-- behavior="menu" --}}
+                @input="mostrar_casos" 
+                    >
+          </q-select>
+      </div>
+      <div id="filtrado">
+        <template v-for="rub in rub_filtrado">
+          <div class="row rub_1_exp" >
               <q-bar class="card_r_exp shadow-2 bg-white">
                   <div>
                       <div>@{{rub.nombre}}</div>
@@ -24,10 +39,31 @@
 
               </q-bar>
           </div>
-      </template>
+        </template>
+      </div>
+      <div id="filtrado_e">
+        <template v-for="rub in rub_filtrado_e">
+          <div class="row rub_1_exp" >
+              <q-bar class="card_r_exp shadow-2 bg-white">
+                  <div>
+                      <div>@{{rub.nombre}}</div>
+                      <div class="text-caption text-grey-7">@{{rub.descripcion}}</div>
+                  </div>
+                  <q-space></q-space>
+                  <div class="status noselect bg-grey-4 text-grey-7">
+                      @{{rub.estado}}
+                  </div>
+                  <q-btn padding="8px 5px" color="green-6" icon="remove_red_eye" title="Visual" @click="mostrar_evaluacion(rub)"></q-btn>
+
+              </q-bar>
+          </div>
+        </template>
+
+      </div>
+      
   </div>
 
-  <div style="width: 35%;display:flex; flex-direction: row; margin-top:25px;justify-content: center;">
+  <div id="criterios_e" style="width: 35%;display:flex; flex-direction: row; margin-top:25px;justify-content: center;">
     <div id="criterios_c">
       <div style="display: flex;flex-direction: column; margin-bottom: 5px;">
         {{-- <div style="margin-bottom: 6px;">Criterios</div> --}}
@@ -150,6 +186,181 @@
 </div>
 </div>
 
+<div id="rubrica_m" style="margin-top: 50px !important">
+  <q-banner inline-actions rounded class="bg-primary text-white">
+    RÚBRICA
+   {{--  <template v-slot:action>
+      <q-btn flat label="Mostrar" @click="mostrar_rubrica_completa2(id_rub_actual2)"></q-btn>
+    </template> --}}
+  </q-banner>
+  <q-card class="column full-height">
+    <q-card-section>
+        <div class="text-h6">@{{n_rub_visual}}</div>
+    </q-card-section>
+    <q-separator></q-separator>
+    <q-card-section class="col q-pt-none scroll">
+        <div style="padding-top: 20px;">
+          <div id="inferior">
+            <div style="display: flex; justify-content: center;">
+              <div style="width: 90%; display:flex; background:#f1f1f1">
+
+            </div>
+          </div>
+
+            
+            <div id="contenedor_rubrica"> 
+            <div id="rubrica_interna">
+          
+              <div id="columnas">
+          
+                <div class="row nivel">
+                  <div class="col cab_rub criterio" >Criterios</div>
+                  <div class="col cab_rub" v-for = "(nivel,index) in t_niveles" v-bind:key = "index">
+                    <span style="display: block">@{{nivel.texto}}</span>
+                    <span>(@{{nivel.valor}})</span>
+
+                  </div>
+                </div>
+                  
+              </div>
+              <div class="columnas">
+                <div class="row nivel" v-for = "(criterio,index) in t_criterios.criterio" v-bind:key = "index">
+                  <div class="col cab_rub nuevo_criterio">
+                    <div style="width: 70%; display:flex; flex-direction: column;">
+                      <span class="estilo4">@{{criterio.nombre}}</span>
+                      <span class="estilo5">(@{{criterio.porcentaje}}%)</span>
+          
+                    </div>
+                        
+          
+                        <div style="margin-left: 12px;">
+                          
+                        </div>
+                       
+                  </div>
+                  <div class="col cab_rub " v-for = "(nivel,index2) in t_niveles" v-bind:key = "index2" @click = "editar_nivel_criterio_v(criterio.id_c,nivel.valor)">
+                    <span class="estilo6" v-for = "cri in t_criterios.texto_niveles" v-if = "criterio.id_c == cri.id_c && cri.nivel == nivel.valor ">@{{cri.texto}}</span>
+                    
+                    
+                  </div>
+          
+                </div>
+              </div>
+
+            </div>
+            </div>
+            
+          </div>            
+            
+            
+        </div>
+        
+    </q-card-section>
+    <q-separator></q-separator>
+    <q-card-actions align="right">
+      <div>          
+        <q-btn flat label="Volver" color="green-9" @click="fullHeightRubrica3 = false"></q-btn>
+      </div>
+      <div>          
+{{--           <q-btn flat label="Finalizar" color="green-9" @click="validacion_rubrica_completa"></q-btn>
+--}}          {{-- <q-btn flat label="Guardar" color="green-9" @click="actualizar_bd()"></q-btn> --}}
+      </div>
+    </q-card-actions>
+</q-card>
+
+</div>
+
+
+
+<!--MODAL DE evaluacion realizada SOLO VISUAL-->
+<q-dialog v-model="eva_exp_v" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
+  <q-card class="column full-height">
+      <q-card-section>
+          <div class="text-h6">Visual Evaluación Realizada</div>
+      </q-card-section>
+      <q-separator></q-separator>
+      <q-card-section class="col q-pt-none scroll">
+        <div id="evaluacion_m_e">
+      
+          <div v-for="(doc, index) in docentes_eval2_e" :key="index" class="cont_tabla">
+            <table class = "tabla_e" style="width:90%">
+              <tr>
+                <td colspan="7" style="text-align: center;
+                height: 35px;
+                background: #3b2de8;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;">@{{doc.nombres}}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid black;">
+                <th>CRITERIO</th>
+                <th>ITEM</th>
+                <th>SUFICIENCIA</th>
+                <th>COHERENCIA</th>
+                <th>RELEVANCIA</th>
+                <th>CLARIDAD</th>
+                <th>OBSERVACIÓN</th>
+              </tr>
+              <tr v-for="(crit, index_c) in criterio_e_2" :key="index_c" style="border-bottom: 1px solid #c2c2c2;">
+                <td style="padding-left: 5px;">@{{crit.nombre}}</td>
+                <td style="padding-left: 5px;">
+                  <div v-for="(ite, index3) in items_e_2" :key="index3" v-if = "crit.id_criterio == ite.id_criterio" >
+                    @{{ite.nombre}}{{-- , @{{ite.id_item}} --}}
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <div v-for="(sufi, index4) in suficiancia_cal_2" :key="index4" 
+                  v-if = "sufi.id_experto == doc.id_experto && sufi.id_criterio == crit.id_criterio" >
+                    @{{sufi.suficiencia}}
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <div v-for="(cohe, index5) in generales_cal_2" :key="index5" 
+                  v-if = "cohe.id_criterio == crit.id_criterio && cohe.id_experto == doc.id_experto">
+                  @{{cohe.coherencia}}{{-- , @{{cohe.id_criterio}}, @{{cohe.id_item}} --}}
+                    
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <div v-for="(rele, index6) in generales_cal_2" :key="index6" 
+                  v-if = "rele.id_criterio == crit.id_criterio && rele.id_experto == doc.id_experto">
+                  @{{rele.relevancia}}{{-- , @{{cohe.id_criterio}}, @{{cohe.id_item}} --}}
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <div v-for="(cla, index7) in generales_cal_2" :key="index7" 
+                  v-if = "cla.id_criterio == crit.id_criterio && cla.id_experto == doc.id_experto">
+                  @{{cla.claridad}}{{-- , @{{cohe.id_criterio}}, @{{cohe.id_item}} --}}
+                  </div>
+                </td>
+                <td style="text-align: center;">
+                  <div v-for="(obs, index8) in generales_cal_2" :key="index8" 
+                  v-if = "obs.id_criterio == crit.id_criterio && obs.id_experto == doc.id_experto">
+                  @{{obs.observacion}}{{-- , @{{cohe.id_criterio}}, @{{cohe.id_item}} --}}
+                  </div>
+                </td>
+                
+        
+              </tr>
+            </table>
+            <div class= "observaciones_g" v-for="(obs_gen, index9) in generales_obs_2" :key="index9" 
+            v-if = "obs_gen.id_experto == doc.id_experto">
+            @{{obs_gen.observacion}}
+            </div>
+        
+          </div>
+        </div>
+          
+      </q-card-section>
+      <q-separator></q-separator>
+      <q-card-actions align="right">
+        <div>          
+        <q-btn flat label="Volver" color="green-9" @click="eva_exp_v = false"></q-btn>
+        </div>
+      </q-card-actions>
+  </q-card>
+</q-dialog>
+
 <!--MODAL DE RUBRICA SOLO VISUAL-->
 <q-dialog v-model="fullHeightRubrica2" full-height full-width persistent :maximized="maximizedToggle" transition-show="slide-up" transition-hide="slide-down">
   <q-card class="column full-height">
@@ -261,9 +472,9 @@
       </q-card-section>
       <q-separator></q-separator>
       <q-card-actions align="right">
-        <div>          
+        {{-- <div>          
           <q-btn flat label="Volver" color="green-9" @click="fullHeightRubrica2 = false"></q-btn>
-        </div>
+        </div> --}}
         <div>          
 {{--           <q-btn flat label="Finalizar" color="green-9" @click="validacion_rubrica_completa"></q-btn>
  --}}          {{-- <q-btn flat label="Guardar" color="green-9" @click="actualizar_bd()"></q-btn> --}}

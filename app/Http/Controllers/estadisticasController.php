@@ -9,12 +9,17 @@ class estadisticasController extends Controller
     //
     public function get_rub_evaluadas($id_docente){
         $info = DB::connection('pgsql')->select(
-            "SELECT rub.id as id_rubrica, rub.nombre as nombre from  tesis.evaluaciones eva
+            " SELECT rub.id as id_rubrica, rub.nombre as nombre 
+            from tesis.rubricas rub
+          where 
+           rub.id_docente = $id_docente
+		   and rub.estado IN ('EN USO','EVALUADA')"
+           /*  "SELECT rub.id as id_rubrica, rub.nombre as nombre from  tesis.evaluaciones eva
             inner join tesis.rubricas rub
             on rub.id = eva.id_rubrica
             where rub.id_docente = $id_docente
-            and eva.estado = 'EVALUADO'
-            group by rub.id,rub.nombre"
+            and eva.estado = 'EN USO'
+            group by rub.id,rub.nombre" */
             );
             return response()->json($info);
     }
@@ -193,5 +198,76 @@ class estadisticasController extends Controller
 		group by env.id_docente,id_estudiante");
 
         return response()->json($tot2);
+    }
+    public function actualizar_cvi(Request $request){
+        $id_rubrica = $request->get('id_rubrica');
+        $cvi = $request->get('cvi');
+        $control = DB::connection('pgsql')->select("SELECT count(*)as general from tesis.estadisticas
+      where id_rubrica = $id_rubrica");
+      $existe = $control[0]->general;
+
+      if($existe > 0){
+         $act = DB::connection('pgsql')->update("UPDATE tesis.estadisticas
+         SET  cvi_general= $cvi
+         WHERE id_rubrica = $id_rubrica");
+      }
+      if($existe == 0){
+        $act = DB::connection('pgsql')->insert("INSERT INTO tesis.estadisticas(
+            id_rubrica, cvi_general,alfa_c,satisfa_validez)
+            VALUES ($id_rubrica, $cvi,0,0)");
+      }
+      return response('ok');
+    }
+    public function alfa(Request $request){
+        $id_rubrica = $request->get('id_rubrica');
+        $alfa = $request->get('alfa');
+        $control = DB::connection('pgsql')->select("SELECT count(*)as general from tesis.estadisticas
+      where id_rubrica = $id_rubrica");
+      $existe = $control[0]->general;
+
+      if($existe > 0){
+         $act = DB::connection('pgsql')->update("UPDATE tesis.estadisticas
+         SET  alfa_c= $alfa
+         WHERE id_rubrica = $id_rubrica");
+      }
+      if($existe == 0){
+        $act = DB::connection('pgsql')->insert("INSERT INTO tesis.estadisticas(
+            id_rubrica,cvi_general ,alfa_c,satisfa_validez)
+            VALUES ($id_rubrica,0, $alfa,0)");
+      }
+      return response('ok');
+    }
+    public function satis(Request $request){
+        $id_rubrica = $request->get('id_rubrica');
+        $satis = $request->get('satis');
+        $control = DB::connection('pgsql')->select("SELECT count(*)as general from tesis.estadisticas
+      where id_rubrica = $id_rubrica");
+      $existe = $control[0]->general;
+
+      if($existe > 0){
+         $act = DB::connection('pgsql')->update("UPDATE tesis.estadisticas
+         SET  satisfa_validez= $satis
+         WHERE id_rubrica = $id_rubrica");
+      }
+      if($existe == 0){
+        $act = DB::connection('pgsql')->insert("INSERT INTO tesis.estadisticas(
+            id_rubrica,cvi_general ,alfa_c, satisfa_validez)
+            VALUES ($id_rubrica,0,0, $satis)");
+      }
+      return response('ok');
+    }
+    public function descarga_r(Request $request){
+        $id_c = $request->get('id_campo');
+        $id_dis = $request->get('id_dis');
+        $id_subd = $request->get('id_subd');
+        $descarga = DB::connection('pgsql')->select("SELECT rub.id as id_rubrica,rub.nombre, est.cvi_general,est.alfa_c as alfa,est.satisfa_validez as satisfaccion_validez
+        FROM tesis.estadisticas est
+        inner join tesis.rubricas rub
+        on rub.id = est.id_rubrica
+        where rub.id_campo = $id_c
+        or rub.id_disciplina = $id_dis
+        or rub.id_subdisciplina = $id_subd");
+        return response()->json($descarga);
+        //return $request;
     }
 }

@@ -34,12 +34,33 @@ class datos_principales extends Controller
         );
         return response()->json($info, 200);
     }
+    public function get_rubricas_externos_eval($correo){
+        $info = DB::connection('pgsql')->select(
+        "SELECT rub.id, eva.id as id_evaluacion, rub.nombre, rub.descripcion, rub.estado
+        FROM tesis.rubricas rub
+        inner join tesis.evaluaciones eva
+        on eva.id_rubrica = rub.id
+		inner join tesis.expertos exp
+		on exp.id = eva.id_experto
+        where exp.email= '$correo'
+        and eva.estado = 'EVALUADO'"
+        );
+        return response()->json($info, 200);
+    }
+    public function get_id_exp($correo){
+        $info = DB::connection('pgsql')->select(
+        "SELECT id as id_experto ,nombres
+        FROM tesis.expertos where email= '$correo'"
+        );
+        return response()->json($info, 200);
+    }
+    
     public function get_rubricas_tarea($id_personal){
         $info = DB::connection('pgsql')->select(
         "SELECT id, nombre
         FROM tesis.rubricas 
         where id_docente= '$id_personal'
-        and estado = 'EVALUADA'"
+        and estado IN ('EVALUADA','EN USO')"
         );
         return response()->json($info, 200);
     }

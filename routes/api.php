@@ -47,6 +47,8 @@ Route::get('modulos/{rol}',[ModulosController::class,'get_modulos'])->name('modu
 //rubricas
 Route::get('rub_general/{id_docente}',[datos_principales::class,'get_rubricas'])->name('rub_general.get_rubrica');
 Route::get('rub_general/experto/{id_externo}',[datos_principales::class,'get_rubricas_externos'])->name('rub_general.get_rubricas_externos');
+Route::get('rub_general/experto/evaluadas/{id_externo}',[datos_principales::class,'get_rubricas_externos_eval'])->name('rub_general.get_rubricas_externos_eval');
+Route::get('get_id_exp/{correo}',[datos_principales::class,'get_id_exp'])->name('get_id_exp.get_id_exp');
 
 
 Route::post('rubrica',[RubricaController::class,'store'])->name('rubrica.store');
@@ -126,6 +128,8 @@ Route::get('validar_cuestionario/{rubrica}/{estudiante}',[tareasController::clas
 Route::get('get_asignaciones_doce/{id_docente}',[tareasController::class,'get_asignaciones_docente'])->name('get_asignaciones_doce.get_asignaciones_docente');
 Route::put('evaluacion_pares_docente',[tareasController::class,'guardar_evaluacion_docente'])->name('evaluacion_pares_docente.guardar_evaluacion_docente');
 Route::get('get_notas_docente/{id_tarea}',[tareasController::class,'get_notas_docente'])->name('get_notas_docente.get_notas_docente');
+Route::get('get_cedulas/{id_estudiante}',[tareasController::class,'get_cedula'])->name('get_cedulas.get_cedula');
+
 
 //PARA GETOR DE CALCULOS Y ESTADISTICAS
 Route::get('get_rub_eval/{id_docente}',[estadisticasController::class,'get_rub_evaluadas'])->name('get_rub_eval.get_rub_evaluadas');
@@ -145,6 +149,10 @@ Route::get('get_cali_est/{id_rubrica}',[estadisticasController::class,'get_c_est
 Route::get('get_tar_doc/{id_docente}/{id_rubrica}',[estadisticasController::class,'get_t_doc'])->name('get_tar_doc.get_t_doc');
 Route::get('get_totale/{id_rubrica}',[estadisticasController::class,'get_sum_tot_e'])->name('get_totale.get_sum_tot_e');
 Route::get('get_totald/{id_rubrica}',[estadisticasController::class,'get_sum_tot_d'])->name('get_totald.get_sum_tot_d');
+Route::put('update_cvi',[estadisticasController::class,'actualizar_cvi'])->name('update_cvi.actualizar_cvi');
+Route::put('update_alfa',[estadisticasController::class,'alfa'])->name('update_alfa.alfa');
+Route::put('update_satis',[estadisticasController::class,'satis'])->name('update_satis.satis');
+Route::post('descargar_r',[estadisticasController::class,'descarga_r'])->name('descargar_r.descarga_r');
 
 //peticiones para datos unesco
 Route::get('get_campos_u',[unesco::class,'get_campos'])->name('get_campos_u.get_campos');
@@ -156,4 +164,7 @@ Route::put('save_dis',[unesco::class,'save_dis'])->name('save_dis.save_dis');
 Route::put('update_dis',[unesco::class,'update_dis'])->name('update_dis.update_dis');
 Route::put('save_sdis',[unesco::class,'save_sdis'])->name('save_sdis.save_sdis');
 Route::put('update_sdis',[unesco::class,'update_sdis'])->name('update_sdis.update_sdis');
+Route::delete('delete_campo/{id_campo}',[unesco::class,'delete_campo'])->name('delete_campo.delete_campo');
+Route::delete('delete_disciplina/{id_disciplina}',[unesco::class,'delete_disciplina'])->name('delete_disciplina.delete_disciplina');
+Route::delete('delete_subdisciplina/{id_subdisciplina}',[unesco::class,'delete_subdisciplina'])->name('delete_subdisciplina.delete_subdisciplina');
 

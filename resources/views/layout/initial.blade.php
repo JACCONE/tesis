@@ -24,7 +24,7 @@
 <body>
     <!-- Add the following at the end of your body tag -->
     <div id="aut" style="height: 100%;">
-        <q-layout view="hHh Lpr lff" container>
+        <q-layout view="hHh lpR fFf" container>
             <q-header elevated class="bg-green-10">
                 <q-toolbar>
                     <q-btn flat @click="drawer = !drawer" round dense icon="menu"></q-btn>
@@ -81,9 +81,11 @@
                     <div id="eva_estudiante_interface" class="interface" style="display: none;">@include('layout.eva_estudiante')</div>
                     <div id="homework_interface" class="interface" style="display: none;">@include('layout.homework')</div>
                     <div id="unesco_e_interface" class="interface" style="display: none;background: #e1e1e1;">@include('layout.unesco')</div>
+                    <div id="descargas_interface" class="interface" style="display: none;">@include('layout.descargas')</div>
                     <div id="homework_e_interface" class="interface" style="display: none;">@include('layout.homework_e')</div>
                     <div id="estadisticas_e_interface" class="interface" style="display: none;">@include('layout.estadisticas_r')</div>
                     <div id="student_e_interface" class="interface" style="display: none;">@include('layout.student_evaluation')</div>
+                    {{-- <div id="descargas_interface" class="interface" style="display: none;">@include('layout.descargas')</div> --}}
 
                     {{-- loading --}}
                     

@@ -77,4 +77,52 @@ class unesco extends Controller
         WHERE id=$id and estado = 1");
           return response()->json($info, 200);
       }
+      public function delete_campo($campo){
+       // $nombre = $campo->get('nombre');
+        $id = $campo;
+        $control = DB::connection('pgsql')->select("	SELECT count(*)as control from tesis.rubricas
+        where id_campo = $id ");
+        $existe = $control[0]->control;
+        if($existe == 0){
+          $info =  DB::connection('pgsql')->delete("DELETE FROM tesis.campos_unesco
+          WHERE id = $id");
+          
+          return response(1);
+        }else{
+          return(0);
+        }
+
+      }
+      public function delete_disciplina($disciplina){
+        // $nombre = $campo->get('nombre');
+         $id = $disciplina;
+         $control = DB::connection('pgsql')->select("	SELECT count(*)as control from tesis.rubricas
+         where id_disciplina = $id ");
+         $existe = $control[0]->control;
+         if($existe == 0){
+           $info =  DB::connection('pgsql')->delete("DELETE FROM tesis.disciplinas_unesco
+           WHERE id = $id");
+           
+           return response(1);
+         }else{
+           return(0);
+         }
+ 
+       }
+       public function delete_subdisciplina($subdisciplina){
+        // $nombre = $campo->get('nombre');
+         $id = $subdisciplina;
+         $control = DB::connection('pgsql')->select("	SELECT count(*)as control from tesis.rubricas
+         where id_subdisciplina = $id ");
+         $existe = $control[0]->control;
+         if($existe == 0){
+           $info =  DB::connection('pgsql')->delete("DELETE FROM tesis.subdisciplinas_unesco
+           WHERE id = $id");
+           
+           return response(1);
+         }else{
+           return(0);
+         }
+ 
+       }
 }
